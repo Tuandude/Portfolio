@@ -1,10 +1,10 @@
 {
-  "name": "gitstory-cli",
+  "name": "aider-cli",
   "version": "1.0.0",
-  "description": "GitStory AI CLI client",
+  "description": "Aider AI CLI client",
   "main": "dist/index.js",
   "bin": {
-    "gitstory": "./dist/index.js"
+    "aider": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

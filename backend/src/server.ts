@@ -12,6 +12,21 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+function getModifiedFiles(diff: string): string[] {
+  const files: string[] = [];
+  const lines = diff.split('\n');
+  for (const line of lines) {
+    if (line.startsWith('diff --git a/')) {
+      const parts = line.split(' ');
+      if (parts.length >= 3) {
+        const file = parts[2].substring(2);
+        files.push(file);
+      }
+    }
+  }
+  return files;
+}
+
 app.post('/api/commit', async (req, res) => {
   const { diff, fileTree, currentMermaid, projectToken } = req.body;
   console.log(`Received commit request for token: ${projectToken}`);
@@ -62,11 +77,15 @@ ${diff}
     let pmSummary = 'Bản cập nhật này giúp đồng bộ hóa các tệp tin cấu hình và làm sạch thư mục dự án.';
     let audioScript = 'Bác sĩ code nhận xét: File thay đổi nhỏ thôi, không có gì đáng ngại đâu!';
 
-    if (diff.includes('package.json') || diff.includes('package-lock.json')) {
+    const modifiedFiles = getModifiedFiles(diff || '');
+    const hasPackageJson = modifiedFiles.some(f => f.endsWith('package.json') || f.endsWith('package-lock.json'));
+    const hasServerOrUI = modifiedFiles.some(f => f.endsWith('server.ts') || f.endsWith('App.tsx') || f.endsWith('index.css'));
+
+    if (hasPackageJson) {
       commitMessage = 'chore: update package dependencies and build configurations';
       pmSummary = 'Cập nhật các thư viện phụ thuộc của dự án để đảm bảo tính bảo mật và tương thích.';
       audioScript = 'Bác sĩ code nhận xét: Update thư viện xong nhớ test kỹ nhé, coi chừng xung đột phiên bản!';
-    } else if (diff.includes('server.ts') || diff.includes('App.tsx') || diff.includes('index.css')) {
+    } else if (hasServerOrUI) {
       commitMessage = 'feat(ui): refine dashboard layout and styling with Tailwind';
       pmSummary = 'Tinh chỉnh bố cục và giao diện Dashboard để tương thích hoàn toàn với Tailwind v4 mới.';
       audioScript = 'Bác sĩ code nhận xét: Giao diện GitHub Dark trông xịn sò đấy, Chủ tịch duyệt là chuẩn bài rồi!';

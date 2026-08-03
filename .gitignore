@@ -3,3 +3,9 @@ dist/
 .env
 .env.*
 .superpowers/
+.agents/
+.antigravity/
+.gstack/
+context_handover.txt
+test-commit-msg.txt
+test-msg.txt

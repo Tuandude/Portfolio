@@ -1,6 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-github-bg: #0d1117;
+  --color-github-card: #161b22;
+  --color-github-border: #30363d;
+  --color-github-text: #c9d1d9;
+  --color-github-muted: #8b949e;
+  --color-github-accent: #58a6ff;
+  --color-github-green: #2ea44f;
+  --color-github-red: #f85149;
+  --color-github-yellow: #d29922;
+}
 
 body {
   background-color: #0d1117;

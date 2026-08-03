@@ -51,12 +51,14 @@ node "${path_1.default.join(process.cwd(), 'cli', 'dist', 'index.js')}" run-hook
 });
 program
     .command('run-hook <commitMsgFile>')
+    .option('-d, --diff <range>', 'Git diff range (e.g. HEAD~1 or cached)', 'cached')
     .description('Internal execution of the git hook')
-    .action(async (commitMsgFile) => {
+    .action(async (commitMsgFile, options) => {
     try {
-        const diff = (0, child_process_1.execSync)('git diff --cached').toString('utf8');
+        const diffCmd = options.diff === 'cached' ? 'git diff --cached' : `git diff ${options.diff}`;
+        const diff = (0, child_process_1.execSync)(diffCmd).toString('utf8');
         if (!diff.trim()) {
-            process.exit(0); // No staged changes, skip hook
+            process.exit(0); // No changes, skip hook
         }
         const fileTree = (0, child_process_1.execSync)('git ls-files').toString('utf8');
         const readmePath = path_1.default.join(process.cwd(), 'README.md');
@@ -65,11 +67,11 @@ program
             const readme = fs_1.default.readFileSync(readmePath, 'utf8');
             const match = readme.match(/<!-- AIDER:START -->([\s\S]*?)<!-- AIDER:END -->/);
             if (match) {
-                currentMermaid = match[1].trim();
+                currentMermaid = match[1].replace(/```mermaid/g, '').replace(/```/g, '').trim();
             }
         }
         console.log('Analyzing diff with Aider API...');
-        const apiUrl = process.env.AIDER_API_URL || 'http://localhost:8085/api/commit';
+        const apiUrl = process.env.AIDER_API_URL || 'https://aider-backend-1047791816785.us-central1.run.app/api/commit';
         const response = await axios_1.default.post(apiUrl, {
             diff,
             fileTree,
