@@ -47,4 +47,51 @@ node "${path_1.default.join(process.cwd(), 'cli', 'dist', 'index.js')}" run-hook
     }
     console.log('GitStory initialized successfully!');
 });
+const child_process_1 = require("child_process");
+const axios_1 = __importDefault(require("axios"));
+program
+    .command('run-hook <commitMsgFile>')
+    .description('Internal execution of the git hook')
+    .action(async (commitMsgFile) => {
+    try {
+        const diff = (0, child_process_1.execSync)('git diff --cached').toString('utf8');
+        if (!diff.trim()) {
+            process.exit(0); // No staged changes, skip hook
+        }
+        const fileTree = (0, child_process_1.execSync)('git ls-files').toString('utf8');
+        const readmePath = path_1.default.join(process.cwd(), 'README.md');
+        let currentMermaid = '';
+        if (fs_1.default.existsSync(readmePath)) {
+            const readme = fs_1.default.readFileSync(readmePath, 'utf8');
+            const match = readme.match(/<!-- GITSTORY:START -->([\s\S]*?)<!-- GITSTORY:END -->/);
+            if (match) {
+                currentMermaid = match[1].trim();
+            }
+        }
+        console.log('Analyzing diff with GitStory API...');
+        const apiUrl = process.env.GITSTORY_API_URL || 'http://localhost:8080/api/commit';
+        const response = await axios_1.default.post(apiUrl, {
+            diff,
+            fileTree,
+            currentMermaid,
+            projectToken: process.env.GITSTORY_PROJECT_TOKEN || 'default-project'
+        }, { timeout: 5000 });
+        const { commitMessage, updatedMermaid } = response.data;
+        // Overwrite commit message file
+        fs_1.default.writeFileSync(commitMsgFile, commitMessage, 'utf8');
+        // Overwrite README.md diagram
+        if (fs_1.default.existsSync(readmePath)) {
+            let readme = fs_1.default.readFileSync(readmePath, 'utf8');
+            const updatedReadme = readme.replace(/<!-- GITSTORY:START -->[\s\S]*?<!-- GITSTORY:END -->/, `<!-- GITSTORY:START -->\n\`\`\`mermaid\n${updatedMermaid}\n\`\`\`\n<!-- GITSTORY:END -->`);
+            fs_1.default.writeFileSync(readmePath, updatedReadme, 'utf8');
+            // Stage README changes automatically
+            (0, child_process_1.execSync)('git add README.md');
+        }
+        console.log('GitStory updated successfully!');
+    }
+    catch (err) {
+        console.error('GitStory failed:', err.message);
+        // Do not crash the commit process, log and continue
+    }
+});
 program.parse(process.argv);
