@@ -1,8 +1,4 @@
 # Project
 
-<!-- GITSTORY:START -->
-```mermaid
-graph TD
-  A[App] --> B[Controller]
-```
-<!-- GITSTORY:END -->
+<!-- AIDER:START -->
+<!-- AIDER:END -->

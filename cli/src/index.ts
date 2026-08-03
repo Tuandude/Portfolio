@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import axios from 'axios';
 
 const program = new Command();
 
 program
-  .name('gitstory')
-  .description('GitStory AI - The Interactive Project Biographer')
+  .name('aider')
+  .description('Aider - The Interactive Project Biographer')
   .version('1.0.0');
-
-import fs from 'fs';
-import path from 'path';
 
 program
   .command('init')
-  .description('Initialize GitStory hook in the repository')
+  .description('Initialize Aider hook in the repository')
   .action(() => {
     const gitDir = path.join(process.cwd(), '.git');
     if (!fs.existsSync(gitDir)) {
@@ -28,7 +29,7 @@ program
 
     const hookPath = path.join(hooksDir, 'prepare-commit-msg');
     const hookScript = `#!/bin/sh
-# GitStory AI commit msg hook
+# Aider commit msg hook
 node "${path.join(process.cwd(), 'cli', 'dist', 'index.js')}" run-hook "$1" "$2" "$3"
 `;
 
@@ -38,20 +39,17 @@ node "${path.join(process.cwd(), 'cli', 'dist', 'index.js')}" run-hook "$1" "$2"
     const readmePath = path.join(process.cwd(), 'README.md');
     if (fs.existsSync(readmePath)) {
       let content = fs.readFileSync(readmePath, 'utf8');
-      if (!content.includes('GITSTORY:START')) {
-        content += '\n\n<!-- GITSTORY:START -->\n<!-- GITSTORY:END -->\n';
+      if (!content.includes('AIDER:START')) {
+        content += '\n\n<!-- AIDER:START -->\n<!-- AIDER:END -->\n';
         fs.writeFileSync(readmePath, content, 'utf8');
         console.log('Added placeholders to README.md.');
       }
     } else {
-      fs.writeFileSync(readmePath, '# Project\n\n<!-- GITSTORY:START -->\n<!-- GITSTORY:END -->\n', 'utf8');
+      fs.writeFileSync(readmePath, '# Project\n\n<!-- AIDER:START -->\n<!-- AIDER:END -->\n', 'utf8');
       console.log('Created README.md with placeholders.');
     }
-    console.log('GitStory initialized successfully!');
+    console.log('Aider initialized successfully!');
   });
-
-import { execSync } from 'child_process';
-import axios from 'axios';
 
 program
   .command('run-hook <commitMsgFile>')
@@ -69,20 +67,20 @@ program
       let currentMermaid = '';
       if (fs.existsSync(readmePath)) {
         const readme = fs.readFileSync(readmePath, 'utf8');
-        const match = readme.match(/<!-- GITSTORY:START -->([\s\S]*?)<!-- GITSTORY:END -->/);
+        const match = readme.match(/<!-- AIDER:START -->([\s\S]*?)<!-- AIDER:END -->/);
         if (match) {
           currentMermaid = match[1].trim();
         }
       }
 
-      console.log('Analyzing diff with GitStory API...');
-      const apiUrl = process.env.GITSTORY_API_URL || 'http://localhost:8080/api/commit';
+      console.log('Analyzing diff with Aider API...');
+      const apiUrl = process.env.AIDER_API_URL || 'http://localhost:8085/api/commit';
       
       const response = await axios.post(apiUrl, {
         diff,
         fileTree,
         currentMermaid,
-        projectToken: process.env.GITSTORY_PROJECT_TOKEN || 'default-project'
+        projectToken: process.env.AIDER_PROJECT_TOKEN || 'default-project'
       }, { timeout: 5000 });
 
       const { commitMessage, updatedMermaid } = response.data;
@@ -94,17 +92,17 @@ program
       if (fs.existsSync(readmePath)) {
         let readme = fs.readFileSync(readmePath, 'utf8');
         const updatedReadme = readme.replace(
-          /<!-- GITSTORY:START -->[\s\S]*?<!-- GITSTORY:END -->/,
-          `<!-- GITSTORY:START -->\n\`\`\`mermaid\n${updatedMermaid}\n\`\`\`\n<!-- GITSTORY:END -->`
+          /<!-- AIDER:START -->[\s\S]*?<!-- AIDER:END -->/,
+          `<!-- AIDER:START -->\n\`\`\`mermaid\n${updatedMermaid}\n\`\`\`\n<!-- AIDER:END -->`
         );
         fs.writeFileSync(readmePath, updatedReadme, 'utf8');
         // Stage README changes automatically
         execSync('git add README.md');
       }
 
-      console.log('GitStory updated successfully!');
+      console.log('Aider updated successfully!');
     } catch (err: any) {
-      console.error('GitStory failed:', err.message);
+      console.error('Aider failed:', err.message);
       // Do not crash the commit process, log and continue
     }
   });
