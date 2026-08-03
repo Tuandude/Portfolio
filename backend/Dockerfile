@@ -10,5 +10,5 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --only=production
 COPY --from=builder /app/dist ./dist
-EXPOSE 8080
+EXPOSE 8085
 CMD ["node", "dist/server.js"]
