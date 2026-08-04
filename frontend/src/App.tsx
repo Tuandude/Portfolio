@@ -76,7 +76,35 @@ function App() {
   };
 
   const togglePlay = (hash: string) => {
-    setCommits(commits.map(c => c.hash === hash ? { ...c, isPlaying: !c.isPlaying } : c));
+    const commit = commits.find(c => c.hash === hash);
+    if (!commit) return;
+
+    if (commit.isPlaying) {
+      window.speechSynthesis.cancel();
+      setCommits(commits.map(c => c.hash === hash ? { ...c, isPlaying: false } : c));
+    } else {
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(commit.audioScript);
+      utterance.lang = 'vi-VN';
+      
+      utterance.onend = () => {
+        setCommits(prev => prev.map(c => c.hash === hash ? { ...c, isPlaying: false } : c));
+      };
+      
+      utterance.onerror = () => {
+        setCommits(prev => prev.map(c => c.hash === hash ? { ...c, isPlaying: false } : c));
+      };
+
+      setCommits(commits.map(c => {
+        if (c.hash === hash) {
+          return { ...c, isPlaying: true };
+        }
+        return { ...c, isPlaying: false };
+      }));
+
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   const activeCommit = commits.find(c => c.hash === activeCommitHash) || commits[0];
