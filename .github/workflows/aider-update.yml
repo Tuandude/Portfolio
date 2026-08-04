@@ -32,6 +32,7 @@ jobs:
       - name: Run Aider Hook
         env:
           AIDER_API_URL: https://aider-backend-1047791816785.us-central1.run.app/api/commit
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           node cli/dist/index.js run-hook temp-msg.txt --diff HEAD~1
 

@@ -10,8 +10,6 @@ app.use(express.json({ limit: '10mb' }));
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
 function getModifiedFiles(diff: string): string[] {
   const files: string[] = [];
   const lines = diff.split('\n');
@@ -29,9 +27,16 @@ function getModifiedFiles(diff: string): string[] {
 
 app.post('/api/commit', async (req, res) => {
   const { diff, fileTree, currentMermaid, projectToken } = req.body;
+  const apiKey = req.headers['x-gemini-api-key'] || req.body.geminiApiKey || process.env.GEMINI_API_KEY;
   console.log(`Received commit request for token: ${projectToken}`);
 
   try {
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is missing. Please provide it in headers (x-gemini-api-key) or configure it on the server.");
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey as string);
+
     const systemInstruction = `You are an expert system architect and technical writer. 
 You will analyze a code diff and update the Mermaid diagram representing the codebase.
 You must return a JSON response containing:

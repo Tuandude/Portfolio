@@ -72,12 +72,20 @@ program
         }
         console.log('Analyzing diff with Aider API...');
         const apiUrl = process.env.AIDER_API_URL || 'https://aider-backend-1047791816785.us-central1.run.app/api/commit';
+        const apiKey = process.env.GEMINI_API_KEY;
+        const headers = {};
+        if (apiKey) {
+            headers['x-gemini-api-key'] = apiKey;
+        }
         const response = await axios_1.default.post(apiUrl, {
             diff,
             fileTree,
             currentMermaid,
             projectToken: process.env.AIDER_PROJECT_TOKEN || 'default-project'
-        }, { timeout: 5000 });
+        }, {
+            headers,
+            timeout: 5000
+        });
         const { commitMessage, updatedMermaid } = response.data;
         // Overwrite commit message file
         fs_1.default.writeFileSync(commitMsgFile, commitMessage, 'utf8');
