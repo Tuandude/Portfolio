@@ -39,7 +39,8 @@ app.post('/api/commit', async (req, res) => {
     const genAI = new GoogleGenerativeAI(apiKey as string);
 
     const systemInstruction = `You are an expert system architect and technical writer. 
-You will analyze a code diff and update the Mermaid diagram representing the codebase.
+You will analyze a code diff and directory structure, then update the Mermaid diagram representing the codebase.
+You must add new nodes and connections for any new services, modules, or key components introduced in the diff (for example, if an AudioService is introduced, you must add an Audio Service node connected to the API Gateway).
 You must return a JSON response containing:
 1. commitMessage: conventional commit format (feat/fix/chore)
 2. updatedMermaid: updated graph syntax. Mark changed components.
