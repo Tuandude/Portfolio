@@ -7,3 +7,5 @@ graph TD
   API --> DB[Firestore Database]
 ```
 <!-- AIDER:END -->
+
+<!-- Trigger rebuild -->
