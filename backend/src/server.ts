@@ -86,8 +86,14 @@ ${diff}
     const modifiedFiles = getModifiedFiles(diff || '');
     const hasPackageJson = modifiedFiles.some(f => f.endsWith('package.json') || f.endsWith('package-lock.json'));
     const hasServerOrUI = modifiedFiles.some(f => f.endsWith('server.ts') || f.endsWith('App.tsx') || f.endsWith('index.css'));
+    const hasAudioService = modifiedFiles.some(f => f.toLowerCase().includes('audio') || f.toLowerCase().includes('synthesize'));
 
-    if (hasPackageJson) {
+    if (hasAudioService) {
+      commitMessage = 'feat(audio): integrate AudioService for project recaps';
+      updatedMermaid = 'graph TD\n  AUTH[Auth Service] --> API[Backend API Gateway]\n  API --> DB[Firestore Database]\n  API --> AUDIO[Audio Service]';
+      pmSummary = 'Tích hợp dịch vụ âm thanh AudioService giúp tự động tạo các bản tóm tắt dự án bằng giọng nói sinh động.';
+      audioScript = 'Bác sĩ code nhận xét: Audio Service đã online rồi nhé! Giọng đọc nghe bánh cuốn lắm, duyệt luôn!';
+    } else if (hasPackageJson) {
       commitMessage = 'chore: update package dependencies and build configurations';
       pmSummary = 'Cập nhật các thư viện phụ thuộc của dự án để đảm bảo tính bảo mật và tương thích.';
       audioScript = 'Bác sĩ code nhận xét: Update thư viện xong nhớ test kỹ nhé, coi chừng xung đột phiên bản!';
