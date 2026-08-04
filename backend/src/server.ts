@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { AudioService } from './services/audio';
 
 dotenv.config();
 
@@ -102,6 +103,22 @@ ${diff}
       pmSummary,
       audioScript
     });
+  }
+});
+
+app.post('/api/synthesize', async (req, res) => {
+  const { text } = req.body;
+  const apiKey = req.headers['x-gemini-api-key'] || req.body.geminiApiKey || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(400).json({ error: "Missing API Key" });
+  }
+  try {
+    const audioService = new AudioService(apiKey as string);
+    const buffer = await audioService.synthesizeSpeech(text || '');
+    res.set('Content-Type', 'audio/mpeg');
+    res.send(buffer);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 
