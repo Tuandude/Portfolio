@@ -41,10 +41,11 @@ Bạn cần thiết lập các biến môi trường sau cho Server của mình:
 - `GITHUB_TOKEN`: GitHub PAT bạn vừa tạo ở Bước 1.
 - `WEBHOOK_SECRET`: Một mật khẩu tự chọn để xác thực webhook (ví dụ: `my-super-secret-123`).
 
-*Lưu ý: Nếu sử dụng Cloud Run, bạn có thể thiết lập thông qua bảng điều khiển Google Cloud Console hoặc chạy lệnh:*
+*Lưu ý: Nếu sử dụng Cloud Run, bạn cần cấu hình cờ `--no-cpu-throttling` để giữ CPU luôn hoạt động cho các tác vụ ngầm (tránh bị Cloud Run tắt container trước khi AI phân tích xong). Chạy lệnh sau để thiết lập biến môi trường và tắt CPU throttling:*
 ```bash
 gcloud run services update aider-backend \
   --update-env-vars GEMINI_API_KEY=YOUR_GEMINI_KEY,GITHUB_TOKEN=YOUR_GITHUB_TOKEN,WEBHOOK_SECRET=YOUR_SECRET \
+  --no-cpu-throttling \
   --region us-central1
 ```
 

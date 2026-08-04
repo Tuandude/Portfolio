@@ -5,6 +5,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { AudioService } from './services/audio';
 import { GitHubService } from './services/github';
+import { filterDiff, limitDiffSize } from './utils/diffFilter';
 
 dotenv.config();
 
@@ -36,7 +37,9 @@ function getModifiedFiles(diff: string): string[] {
 }
 
 app.post('/api/commit', async (req, res) => {
-  const { diff, fileTree, currentMermaid, projectToken } = req.body;
+  const { fileTree, currentMermaid, projectToken } = req.body;
+  const rawDiff = req.body.diff || '';
+  const diff = limitDiffSize(filterDiff(rawDiff));
   const apiKey = req.headers['x-gemini-api-key'] || req.body.geminiApiKey || process.env.GEMINI_API_KEY;
   console.log(`Received commit request for token: ${projectToken}`);
 
@@ -207,7 +210,8 @@ app.post('/api/webhook/github', async (req: express.Request, res: express.Respon
   res.status(202).send('PR analysis started.');
 
   try {
-    const diff = await githubService.downloadDiff(diffUrl);
+    const rawDiff = await githubService.downloadDiff(diffUrl);
+    const diff = limitDiffSize(filterDiff(rawDiff));
     const fileTree = await githubService.getFileTree(owner, repo, sha);
     
     let currentMermaid = '';
