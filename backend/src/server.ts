@@ -138,6 +138,17 @@ app.post('/api/synthesize', async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('Aider Biographer Backend is running!');
+});
+
+app.get('/api/webhook/github', (req, res) => {
+  res.json({
+    status: 'active',
+    message: 'Aider GitHub Webhook endpoint is active. Please configure and send POST requests from GitHub.'
+  });
+});
+
 app.post('/api/webhook/github', async (req: express.Request, res: express.Response) => {
   const event = req.headers['x-github-event'];
   console.log(`Received GitHub Webhook event: ${event}`);
