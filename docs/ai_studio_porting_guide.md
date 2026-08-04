@@ -1,53 +1,24 @@
-# Blueprint: Hướng dẫn Cấu hình Aider Bot trên Google AI Studio
+# Hướng dẫn Cấu hình & Tái tạo Prompt trên Google AI Studio
 
-Tài liệu này chứa toàn bộ các thông số kỹ thuật, cấu hình, System Instructions, JSON Schema và Few-shot Examples được bóc tách từ dự án Aider để bạn thiết lập chạy 1:1 trên Google AI Studio.
-
----
-
-## 1. Cấu hình Tham số Kỹ thuật (Configuration Parameters)
-
-Khi mở giao diện Google AI Studio, hãy chọn mô hình và cấu hình các tham số ở bảng điều khiển bên phải (Settings panel) như sau:
-
-*   **Model**: `Gemini 2.0 Flash` (Mô hình tối ưu cho tốc độ và khả năng phân tích mã nguồn).
-*   **Temperature**: `1.0` (Bạn có thể hạ xuống `0.7` nếu muốn kết quả sơ đồ Mermaid và tóm tắt mang tính chuẩn hóa và nhất quán cao hơn).
-*   **Response MIME Type**: Chọn **`application/json`** (Đây là tính năng cực kỳ quan trọng trên AI Studio để ép buộc mô hình luôn trả về cấu trúc JSON hợp lệ, tránh lỗi trả về các ký tự Markdown thừa).
-*   **JSON Schema**: Nhấp vào nút cấu hình Schema bên cạnh tùy chọn JSON và dán đoạn Schema dưới đây:
-
-```json
-{
-  "type": "OBJECT",
-  "properties": {
-    "commitMessage": {
-      "type": "STRING",
-      "description": "Conventional commit format (feat/fix/chore/docs) based on the diff"
-    },
-    "updatedMermaid": {
-      "type": "STRING",
-      "description": "Updated Mermaid diagram syntax reflecting the architectural changes"
-    },
-    "pmSummary": {
-      "type": "STRING",
-      "description": "Friendly business-focused summary of the changes in Vietnamese"
-    },
-    "audioScript": {
-      "type": "STRING",
-      "description": "A funny and witty 15-second code review script in Vietnamese from the perspective of 'Code Doctor' (Bác sĩ code)"
-    }
-  },
-  "required": [
-    "commitMessage",
-    "updatedMermaid",
-    "pmSummary",
-    "audioScript"
-  ]
-}
-```
+Tài liệu này chứa chi tiết cấu hình và Prompts đang được sử dụng trong hệ thống Aider Bot để bạn có thể sao chép, thử nghiệm và tối ưu hóa trực tiếp trên [Google AI Studio](https://aistudio.google.com/).
 
 ---
 
-## 2. Chỉ dẫn Hệ thống (System Instructions)
+## ⚙️ 1. Cấu hình Chung (System Configurations)
 
-Dán đoạn chỉ dẫn dưới đây vào khung nhập liệu **System Instructions** ở phía trên màn hình:
+Khi tạo một Chat/Freeform Prompt mới trong Google AI Studio, hãy thiết lập các thông số cấu hình ở bảng bên phải (Panel bên phải) như sau:
+
+* **Model**: **`Gemini 2.0 Flash`** (Đây là dòng mô hình khuyên dùng cho tốc độ phản hồi nhanh dưới 10s và xử lý diff tốt).
+* **System Instructions**: *(Xem chi tiết ở mục 2)*.
+* **Temperature**: **`0.2`** (Thiết lập thấp để mô hình đưa ra kết quả nhất quán, cấu trúc Mermaid chính xác và định dạng JSON chuẩn, tránh sự sáng tạo quá mức gây lỗi cú pháp).
+* **Safety Settings**: Giữ ở mức **`Block some`** hoặc **`Default`**.
+* **Advanced Settings -> Response MIME Type**: Chọn **`application/json`** (Rất quan trọng! Thiết lập này ép mô hình bắt buộc phải trả về JSON hợp lệ, tránh việc mô hình trả về kèm theo các khối ký tự markdown ```json ... ``` làm lỗi parser).
+
+---
+
+## 📝 2. Chỉ thị Hệ thống (System Instructions)
+
+Dán toàn bộ đoạn văn bản dưới đây vào ô **System Instructions** ở phía trên cùng của Google AI Studio:
 
 ```text
 You are an expert system architect and technical writer. 
@@ -63,60 +34,51 @@ Return ONLY raw JSON. No markdown ticks.
 
 ---
 
-## 3. Dữ liệu Mẫu (Few-Shot Examples / Structured Input-Output Pairs)
+## 📥 3. Cấu trúc Prompt Đầu vào (User Prompt Template)
 
-Để mô hình hiểu sâu hơn về nghiệp vụ vẽ sơ đồ và tóm tắt, hãy thiết lập một ví dụ mẫu (Few-shot example). Trong Google AI Studio, bạn có thể thêm ví dụ bằng cách tạo **Structured Prompt** hoặc nhập các cặp **Input / Output** dưới đây:
+Dán cấu trúc này vào khung nhập liệu của người dùng (**User Prompt**). Thay thế các giá trị tương ứng để chạy thử nghiệm:
 
-### **Ví dụ 1:**
-
-#### 📥 **Input (Dữ liệu đầu vào)**
 ```text
 Current Mermaid Diagram:
+<Dán sơ đồ Mermaid hiện tại ở đây - Ví dụ dưới đây>
 graph TD
   AUTH[Auth Service] --> API[Backend API Gateway]
   API --> DB[Firestore Database]
 
 Directory Structure:
-backend/package.json
+<Dán danh sách file của dự án ở đây - Ví dụ dưới đây>
 backend/src/server.ts
 backend/src/services/github.ts
 backend/src/services/audio.ts
+frontend/src/App.tsx
 
 Git Diff:
+<Dán đoạn git diff cần phân tích ở đây - Ví dụ dưới đây>
 diff --git a/backend/src/services/audio.ts b/backend/src/services/audio.ts
 new file mode 100644
-index 0000000..f6b2190
+index 0000000..1234567
 --- /dev/null
 +++ b/backend/src/services/audio.ts
 @@ -0,0 +1,10 @@
 +export class AudioService {
-+  async synthesizeSpeech(text: string) {
-+    console.log("Synthesizing speech: " + text);
++  async synthesizeSpeech(text: string): Promise<Buffer> {
++    // Mock synthesize
++    return Buffer.from("audio");
 +  }
 +}
 ```
 
-#### 📤 **Output (Dữ liệu đầu ra mong đợi)**
-```json
-{
-  "commitMessage": "feat(audio): add AudioService for speech synthesis",
-  "updatedMermaid": "graph TD\n  AUTH[Auth Service] --> API[Backend API Gateway]\n  API --> DB[Firestore Database]\n  API --> AUDIO[Audio Service]",
-  "pmSummary": "Tích hợp dịch vụ âm thanh AudioService mới để xử lý chuyển đổi văn bản nhận xét thành giọng nói sinh động.",
-  "audioScript": "Bác sĩ code nhận xét: Ôi trời, Audio Service đã online rồi! Từ nay tôi có thể trực tiếp nói cho các bạn biết code các bạn 'nát' thế nào rồi nhé!"
-}
-```
-
 ---
 
-## 4. Hướng dẫn Xuất Link & Kiểm thử (Verification & Share)
+## 📤 4. Định dạng Đầu ra Kỳ vọng (Expected Output JSON)
 
-1. **Lưu Prompt**:
-   - Bấm vào nút **`Save`** ở góc trên bên trái giao diện Google AI Studio.
-   - Đặt tên cho prompt của bạn (ví dụ: `Aider-Biographer-Bot-Engine`).
-2. **Kiểm thử trực tiếp**:
-   - Ở phía dưới cùng, dán một đoạn diff chạy thử và bấm **`Run`**.
-   - Kiểm tra kết quả trả về trong ô Output. Kết quả phải là JSON sạch, không có dấu tick markdown (vì Response MIME Type là `application/json`), các trường thông tin hiển thị chính xác.
-3. **Bật chia sẻ để lấy Link nộp bài**:
-   - Bấm nút **`Share`** ở góc trên bên phải.
-   - Chọn **`Enable sharing`**.
-   - Copy đường dẫn chính thức (dạng `https://aistudio.google.com/prompts/...` hoặc `https://aistudio.google.com/sharing/...`) và nộp vào form cuộc thi.
+Nếu cấu hình chính xác, mô hình sẽ trả về kết quả dạng JSON thô (Raw JSON) có dạng:
+
+```json
+{
+  "commitMessage": "feat(audio): integrate AudioService for project recaps",
+  "updatedMermaid": "graph TD\n  AUTH[Auth Service] --> API[Backend API Gateway]\n  API --> DB[Firestore Database]\n  API --> AUDIO[Audio Service]",
+  "pmSummary": "Tích hợp dịch vụ âm thanh AudioService giúp tự động tạo các bản tóm tắt dự án bằng giọng nói sinh động.",
+  "audioScript": "Bác sĩ code nhận xét: Audio Service đã online rồi nhé! Giọng đọc nghe bánh cuốn lắm, duyệt luôn!"
+}
+```
