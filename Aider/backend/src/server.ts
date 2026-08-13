@@ -3,14 +3,20 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import crypto from 'crypto';
+import path from 'path';
 import { AudioService } from './services/audio';
 import { GitHubService } from './services/github';
+import { JiraService } from './services/jira';
+import { StorageService } from './services/storage';
 import { filterDiff, limitDiffSize } from './utils/diffFilter';
+import { loadProjectDocs } from './utils/docsLoader';
 
 dotenv.config();
 
 const app = express();
 const githubService = new GitHubService();
+const jiraService = new JiraService();
+const storageService = new StorageService();
 app.use(cors());
 app.use(express.json({ 
   limit: '10mb',
@@ -152,6 +158,92 @@ app.get('/api/webhook/github', (req, res) => {
   });
 });
 
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const list = await storageService.getReviews();
+    res.json(list);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/reports/summary', async (req, res) => {
+  try {
+    const summary = await storageService.getSummaryReports();
+    res.json(summary);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+function generateMarkdownReport(summary: any): string {
+  const stats = summary.stats || {};
+  const developers = summary.developers || [];
+  const weeklyReport = summary.weeklyReport || [];
+
+  const timeStr = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+  // Sắp xếp nhà phát triển theo successRate giảm dần
+  const sortedDevs = [...developers].sort((a, b) => b.successRate - a.successRate);
+
+  let md = `# 📊 BÁO CÁO HIỆU SUẤT LẬP TRÌNH VIÊN & CHẤT LƯỢNG CODE (Aider Bot)
+*Cập nhật tự động vào lúc: **${timeStr} (ICT)***
+
+---
+
+## 📈 Thống Kê Tổng Quan
+* 🚀 **Tổng số Pull Requests đã Review**: \`${stats.totalReviews || 0}\`
+* ✅ **Approved (Đạt chất lượng)**: \`${stats.approveCount || 0}\`
+* ❌ **Request Changes (Cần sửa đổi)**: \`${stats.requestChangesCount || 0}\`
+* 💬 **Comment (Góp ý/Cảnh báo)**: \`${stats.commentCount || 0}\`
+* 📅 **Hoạt động trong tuần**: \`${stats.weeklyCount || 0}\` PRs reviewed.
+
+---
+
+## 🏆 Bảng Xếp Hạng Chất Lượng Code (Leaderboard)
+
+| Hạng | Lập trình viên | Tổng PR | Tỉ lệ Approve | File sửa trung bình | Kết quả review |
+| :---: | :--- | :---: | :---: | :---: | :--- |
+`;
+
+  if (sortedDevs.length === 0) {
+    md += `| - | Chưa có dữ liệu | 0 | 0% | 0 | Chưa có | \n`;
+  } else {
+    sortedDevs.forEach((dev: any, index: number) => {
+      const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+      md += `| ${medal} | **${dev.name}** | \`${dev.totalPRs}\` | **\`${dev.successRate}%\`** | \`${dev.avgFilesChanged}\` | \`${dev.approvedPRs} Approve / ${dev.requestedChangesPRs} Req Changes\` |\n`;
+    });
+  }
+
+  md += `
+---
+
+## 📅 Lịch Sử Review Gần Đây
+
+`;
+
+  if (weeklyReport.length === 0) {
+    md += `*Chưa có hoạt động review nào trong tuần.*`;
+  } else {
+    // Chỉ lấy tối đa 8 PR gần nhất
+    const recentPRs = weeklyReport.slice(-8).reverse();
+    recentPRs.forEach((rep: any) => {
+      const decisionEmoji = 
+        rep.decision === 'APPROVE' ? '✅ APPROVED' : 
+        rep.decision === 'REQUEST_CHANGES' ? '❌ REQUEST CHANGES' : '💬 COMMENT';
+      const dateStr = new Date(rep.timestamp).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+      md += `* **PR #${rep.prNumber}**: ${rep.title}
+  - 👤 Tác giả: **@${rep.author}**
+  - 🚦 Trạng thái: **${decisionEmoji}**
+  - 🕒 Thời gian: _${dateStr}_
+`;
+    });
+  }
+
+  md += `\n\n---\n*Báo cáo được tạo tự động bởi [Aider Bot](https://github.com/Tuandude/Aider).*`;
+  return md;
+}
+
 app.post('/api/webhook/github', async (req: express.Request, res: express.Response) => {
   const event = req.headers['x-github-event'];
   console.log(`Received GitHub Webhook event: ${event}`);
@@ -213,6 +305,20 @@ app.post('/api/webhook/github', async (req: express.Request, res: express.Respon
     const rawDiff = await githubService.downloadDiff(diffUrl);
     const diff = limitDiffSize(filterDiff(rawDiff));
     const fileTree = await githubService.getFileTree(owner, repo, sha);
+    const docsDirPath = path.resolve(__dirname, '../../docs');
+    const docsContext = await loadProjectDocs(docsDirPath);
+    
+    // Giai đoạn 2: Trích xuất và Tải mô tả từ Jira Tickets
+    const prTitle = pull_request.title || '';
+    const prBody = pull_request.body || '';
+    const jiraIds = jiraService.extractJiraIds(`${prTitle} \n ${prBody}`);
+    let jiraContext = '';
+    for (const ticketId of jiraIds) {
+      const desc = await jiraService.getJiraTicketDescription(ticketId);
+      if (desc) {
+        jiraContext += `\n\n--- Jira Issue Context ---\n${desc}\n`;
+      }
+    }
     
     let currentMermaid = '';
     try {
@@ -237,6 +343,8 @@ app.post('/api/webhook/github', async (req: express.Request, res: express.Respon
     let updatedMermaid = '';
     let pmSummary = '';
     let audioScript = '';
+    let reviewDecision: 'APPROVE' | 'REQUEST_CHANGES' | 'COMMENT' = 'COMMENT';
+    let reviewFeedback = '';
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -246,18 +354,32 @@ app.post('/api/webhook/github', async (req: express.Request, res: express.Respon
 
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      const systemInstruction = `You are an expert system architect and technical writer. 
-You will analyze a code diff and directory structure, then update the Mermaid diagram representing the codebase.
-You must add new nodes and connections for any new services, modules, or key components introduced in the diff (for example, if an AudioService is introduced, you must add an Audio Service node connected to the API Gateway).
+      const systemInstruction = `You are an expert system architect, code reviewer, and technical writer.
+You will analyze a code diff, directory structure, project documentation context, and optional Jira ticket context, then:
+1. Update the Mermaid diagram representing the codebase. Add new nodes and connections for new components. Mark changed or new components clearly.
+2. Review the code changes for logic bugs, performance issues, security vulnerabilities, clean code practices (Code Changes Review) with a focus on specific Clean Code standards:
+   - **Clarity & Naming**: Check if variable, function, and class names are descriptive, clear, and follow standard naming conventions.
+   - **Function Structure**: Ensure functions are single-responsibility, short, and structured cleanly.
+   - **Error & Exception Handling**: Check that potential errors are caught and handled gracefully (e.g., using try-catch blocks) without leaking sensitive details or crashing the application.
+   - **Security**: Identify vulnerabilities such as hardcoded secrets/credentials, SQL injections, or missing input validation.
+   - **Testing Coverage**: Check if new features or major modifications include corresponding test files. Flag warnings if tests are missing.
+3. Compare the code changes against the provided project documentation context AND Jira ticket requirements to identify any architectural inconsistencies, business domain violations, or missed requirements (Business Domain Review).
+4. Decide the review status: 
+   - "APPROVE": If the code is of high quality, meets all business requirements/Jira tickets, has no critical bugs, security vulnerabilities, or major code smells, and follows clean code practices.
+   - "REQUEST_CHANGES": If there are critical bugs, security risks (like hardcoded credentials), severe contradictions to project documentation, completely missed Jira requirements, or major unhandled error paths.
+   - "COMMENT": If the code is generally safe to merge but has minor refactoring suggestions, style improvements, or a warning about missing test coverage.
+
 You must return a JSON response containing:
 1. commitMessage: conventional commit format (feat/fix/chore)
 2. updatedMermaid: updated graph syntax. Mark changed components.
-3. pmSummary: friendly Vietnamese summary.
+3. pmSummary: friendly Vietnamese summary of what changed.
 4. audioScript: funny 15s recap script.
+5. reviewDecision: "APPROVE" | "REQUEST_CHANGES" | "COMMENT"
+6. reviewFeedback: A detailed review feedback in Vietnamese, pointing out specific suggestions, bugs, or domain violations.
 Return ONLY raw JSON. No markdown ticks.`;
 
       const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3.5-flash',
         systemInstruction
       });
 
@@ -268,7 +390,13 @@ ${currentMermaid}
 Directory Structure:
 ${fileTree}
 
-Git Diff:
+Project Documentation (Business Domain Context):
+${docsContext}
+
+Jira Ticket Requirements (Additional Context):
+${jiraContext || 'No Jira ticket specified in PR.'}
+
+Git Diff to Review:
 ${diff}
 `;
       const response = await model.generateContent(prompt);
@@ -280,12 +408,16 @@ ${diff}
       updatedMermaid = parsed.updatedMermaid;
       pmSummary = parsed.pmSummary;
       audioScript = parsed.audioScript;
+      reviewDecision = parsed.reviewDecision || 'COMMENT';
+      reviewFeedback = parsed.reviewFeedback || '';
     } catch (err: any) {
       console.warn(`Gemini call failed in webhook, using fallback. Error: ${err.message}`);
       commitMessage = 'chore: update repository files';
       updatedMermaid = currentMermaid || 'graph TD\n  AUTH[Auth Service] --> API[Backend API Gateway]\n  API --> DB[Firestore Database]';
       pmSummary = 'Bản cập nhật này giúp đồng bộ hóa các tệp tin cấu hình và làm sạch thư mục dự án.';
       audioScript = 'Bác sĩ code nhận xét: File thay đổi nhỏ thôi, không có gì đáng ngại đâu!';
+      reviewDecision = 'COMMENT';
+      reviewFeedback = 'Bản review này sử dụng dữ liệu mặc định do kết nối API Gemini thất bại.';
 
       const modifiedFiles: string[] = [];
       const lines = diff.split('\n');
@@ -318,7 +450,13 @@ ${diff}
       }
     }
 
-    const commentBody = `### 🤖 Aider Automated Project Biographer Review
+    const commentBody = `### 🤖 Aider Automated Code Review & Biographer Review
+<!-- AIDER-BOT-REVIEW-COMMENT -->
+
+#### 🚦 Quyết định Review: **${reviewDecision}**
+
+#### 📋 Chi tiết đánh giá & Góp ý (Review Feedback)
+${reviewFeedback || pmSummary}
 
 #### 📊 Sơ đồ kiến trúc Living Architecture (Cập nhật đề xuất)
 \`\`\`mermaid
@@ -332,9 +470,49 @@ ${updatedMermaid}
 *“${audioScript}”*
 
 ---
-*Bình luận được tự động đăng bởi [Aider Bot](https://github.com/Tuandude/Aider).*`;
+*Review được tự động thực hiện bởi [Aider Bot](https://github.com/Tuandude/Aider).*`;
 
-    await githubService.postComment(owner, repo, prNumber, commentBody);
+    // Gửi Review lên GitHub (bọc try-catch riêng để PR giả lập không làm sập luồng lưu DB và xuất báo cáo)
+    try {
+      await githubService.submitReview(owner, repo, prNumber, commentBody, reviewDecision);
+    } catch (reviewErr: any) {
+      console.warn(`[GitHub Warning] Failed to submit PR review (PR #${prNumber} might not exist on GitHub): ${reviewErr.message}`);
+    }
+
+    // Giai đoạn 3: Lưu lịch sử Review
+    try {
+      const changedFilesCount = getModifiedFiles(rawDiff).length;
+      await storageService.saveReview({
+        prNumber,
+        author: pull_request.user?.login || 'unknown',
+        title: prTitle,
+        decision: reviewDecision,
+        feedback: reviewFeedback || pmSummary,
+        changedFilesCount
+      });
+
+      // Tự động cập nhật Báo cáo Hiệu suất lên GitHub Issues
+      try {
+        console.log('Generating updated performance report for GitHub Issues...');
+        const summary = await storageService.getSummaryReports();
+        const reportMd = generateMarkdownReport(summary);
+        await githubService.postOrUpdateIssueReport(owner, repo, reportMd);
+      } catch (reportErr: any) {
+        console.error(`Failed to post/update GitHub Issue report: ${reportErr.message}`);
+      }
+    } catch (e: any) {
+      console.error(`Failed to save review history: ${e.message}`);
+    }
+
+    // Giai đoạn 2: Tự động Merge nếu được Approve
+    if (reviewDecision === 'APPROVE' && process.env.AUTO_MERGE === 'true') {
+      try {
+        console.log(`PR #${prNumber} was APPROVED. Triggering auto-merge...`);
+        await githubService.mergePullRequest(owner, repo, prNumber);
+      } catch (e: any) {
+        console.error(`Failed to auto-merge PR #${prNumber}: ${e.message}`);
+      }
+    }
   } catch (err: any) {
     console.error(`Error in PR analysis flow: ${err.message}`);
   }
