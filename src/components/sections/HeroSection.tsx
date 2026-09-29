@@ -21,11 +21,13 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   const handleScrollTo = (targetId: string) => {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
     if (window.__lenis) {
-      window.__lenis.scrollTo(`#${targetId}`, { duration: 1.2 });
+      window.__lenis.scrollTo(el, { duration: 1.2 });
     } else {
-      const el = document.getElementById(targetId);
-      el?.scrollIntoView({ behavior: "smooth" });
+      el.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -33,7 +35,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
     <section
       id="hero"
       aria-label="Introduction"
-      className={`relative flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16 text-center select-none ${className}`}
+      className={`relative flex min-h-[100svh] flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16 text-center ${className}`}
     >
       <div className="flex max-w-4xl flex-col items-center gap-6 z-[10]">
         {/* 1. Eyebrow badge */}
@@ -43,13 +45,17 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
               ? { opacity: 0 }
               : { opacity: 0, filter: "blur(8px)", y: 16 }
           }
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+          animate={
+            prefersReducedMotion
+              ? { opacity: 1 }
+              : { opacity: 1, filter: "blur(0px)", y: 0 }
+          }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.8,
             delay: prefersReducedMotion ? 0 : 0.3,
             ease: EASE_SMOOTH,
           }}
-          className="inline-flex items-center gap-2 rounded-full border border-stroke bg-surface/80 px-4 py-1.5 backdrop-blur-md"
+          className="inline-flex items-center gap-2 rounded-full border border-stroke bg-surface/80 px-4 py-1.5 backdrop-blur-md select-none"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
           <span className="font-mono text-xs uppercase tracking-[0.2em] text-text-muted">
@@ -62,7 +68,9 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
           initial={
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }
           }
-          animate={{ opacity: 1, y: 0 }}
+          animate={
+            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+          }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 1.2,
             delay: prefersReducedMotion ? 0 : 0.1,
@@ -79,7 +87,9 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
           initial={
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
           }
-          animate={{ opacity: 1, y: 0 }}
+          animate={
+            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+          }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.7,
             delay: prefersReducedMotion ? 0 : 0.4,
@@ -100,7 +110,9 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
           initial={
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
           }
-          animate={{ opacity: 1, y: 0 }}
+          animate={
+            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+          }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.7,
             delay: prefersReducedMotion ? 0 : 0.45,
@@ -117,7 +129,9 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
           initial={
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
           }
-          animate={{ opacity: 1, y: 0 }}
+          animate={
+            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+          }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.7,
             delay: prefersReducedMotion ? 0 : 0.5,

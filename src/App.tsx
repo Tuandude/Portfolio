@@ -4,7 +4,8 @@ import { AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import LoadingScreen from "@/components/sections/LoadingScreen";
 import HeroSection from "@/components/sections/HeroSection";
-import AnimatedWords from "@/components/ui/AnimatedWords";
+import AboutSection from "@/components/sections/AboutSection";
+import SkillsSection from "@/components/sections/SkillsSection";
 import ProjectCard from "@/components/ui/ProjectCard";
 import Marquee from "@/components/ui/Marquee";
 import Toast from "@/components/ui/Toast";
@@ -66,7 +67,7 @@ function App() {
       <Navbar />
 
       <main>
-        {/* 3. Hero Section (Staggered entrance when mounted) */}
+        {/* 3. Hero Section */}
         {loaded && <HeroSection />}
 
         {/* 4. Marquee Banner */}
@@ -74,24 +75,19 @@ function App() {
           <Marquee text="LET'S BUILD SOMETHING • " className="font-mono text-sm tracking-wider text-text-muted" />
         </div>
 
-        {/* 5. About Preview Section */}
-        <section id="about" className="flex min-h-screen items-center justify-center px-6 py-24">
-          <div className="max-w-2xl text-center space-y-8">
-            <h2 className="font-display italic text-4xl heading-gradient">About Me</h2>
-            <AnimatedWords
-              text="I am an AI student based in Ho Chi Minh City, passionate about building products and exploring the intersection of machine learning and creative coding. Every model is trained to converge, every interface crafted with care."
-              className="text-xl sm:text-2xl font-light leading-relaxed text-text"
-            />
-          </div>
-        </section>
+        {/* 5. About Section */}
+        <AboutSection />
 
-        {/* 6. Projects Preview Section */}
-        <section id="projects" className="max-w-5xl mx-auto px-6 py-24 space-y-8">
+        {/* 6. Skills Section (White Section with Overlap) */}
+        <SkillsSection />
+
+        {/* 7. Projects Preview Section */}
+        <section id="projects" className="relative z-[10] -mt-8 rounded-t-[2.5rem] sm:rounded-t-[3.125rem] md:rounded-t-[3.75rem] bg-bg pt-24 pb-16 px-6 max-w-5xl mx-auto space-y-8">
           <h2 className="font-display italic text-4xl heading-gradient">Featured Projects</h2>
           <ProjectCard project={projects[0]} />
         </section>
 
-        {/* 7. Contact Preview Section */}
+        {/* 8. Contact Preview Section */}
         <section id="contact" className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-24 border-t border-stroke/40 text-center">
           <h2 className="font-display italic text-4xl heading-gradient mb-4">Get In Touch</h2>
           <p className="text-text-muted max-w-md mb-8">
