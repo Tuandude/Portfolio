@@ -25,6 +25,7 @@ export function Marquee({
   return (
     <div
       dir="ltr"
+      role="region"
       aria-label={typeof content === "string" ? content.trim() : "Announcement marquee"}
       className={`overflow-hidden select-none whitespace-nowrap flex w-full ${className}`}
     >

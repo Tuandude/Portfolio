@@ -144,7 +144,7 @@ export function Navbar() {
             href="#hero"
             onClick={() => handleLinkClick("hero")}
             className="font-display italic text-base font-bold text-text px-1"
-            aria-label="Tuấn Đặng home"
+            aria-label="TD home"
           >
             TD
           </a>

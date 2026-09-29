@@ -106,7 +106,7 @@ export function AboutSection({ className = "" }: AboutSectionProps) {
           <MagneticButton
             className="rounded-full border border-stroke bg-surface/60 px-7 py-3.5 font-body text-sm font-medium text-text backdrop-blur-sm transition-colors duration-200 hover:border-stroke-hover hover:bg-surface cursor-pointer"
             onClick={handleScrollToContact}
-            aria-label="Scroll to contact section"
+            aria-label="Get in Touch — Scroll to contact section"
           >
             Get in Touch
           </MagneticButton>

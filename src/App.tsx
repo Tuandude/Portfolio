@@ -59,7 +59,7 @@ function App() {
 
       <main>
         {/* 3. Hero Section */}
-        {loaded && <HeroSection />}
+        <HeroSection />
 
         {/* 4. About Section */}
         <AboutSection />

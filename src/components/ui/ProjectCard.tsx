@@ -125,7 +125,7 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
             href={project.github}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`View GitHub repository for ${project.title}`}
+            aria-label={`Source Code: View GitHub repository for ${project.title}`}
             className="inline-flex items-center gap-2 font-body text-sm font-medium text-text-muted transition-colors hover:text-text focus-visible:outline-accent-start"
           >
             <Github className="h-4 w-4" />
@@ -138,7 +138,7 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
             href={project.demo}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`View live demo for ${project.title}`}
+            aria-label={`Live Demo: View live demo for ${project.title}`}
             className="inline-flex items-center gap-2 font-body text-sm font-medium text-text-muted transition-colors hover:text-text focus-visible:outline-accent-start"
           >
             <ExternalLink className="h-4 w-4" />
