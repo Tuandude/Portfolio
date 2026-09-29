@@ -40,8 +40,8 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
       className={`group relative flex flex-col justify-between rounded-3xl border border-stroke bg-surface p-6 md:p-8 min-h-[55svh] max-h-[78svh] overflow-hidden transition-colors duration-300 hover:border-stroke-hover ${className}`}
     >
       {/* Top Header Row: Project Index, Category & Status Badge */}
-      <div className="flex items-center justify-between border-b border-stroke/60 pb-4">
-        <div className="flex items-baseline gap-4">
+      <div className="flex items-center justify-between border-b border-stroke/60 pt-2 pb-4">
+        <div className="flex items-baseline gap-4 pl-1">
           <span
             aria-hidden="true"
             className="font-display italic text-4xl sm:text-5xl md:text-6xl heading-gradient select-none"
@@ -67,9 +67,9 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
       </div>
 
       {/* Main Grid Content: Visual Placeholder (left on desktop) & Details (right on desktop) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center py-6 my-auto">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center py-6 my-auto w-full">
         {/* Visual Placeholder */}
-        <div className="md:col-span-5 relative aspect-[16/10] overflow-hidden rounded-2xl border border-stroke/50 flex items-center justify-center placeholder-gradient select-none">
+        <div className="md:col-span-5 min-w-0 w-full relative aspect-[16/10] overflow-hidden rounded-2xl border border-stroke/50 flex items-center justify-center placeholder-gradient select-none">
           {/* Subtle noise grid pattern overlay */}
           <div
             className="absolute inset-0 opacity-20 pointer-events-none"
@@ -89,18 +89,18 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
         </div>
 
         {/* Text Details */}
-        <div className="md:col-span-7 flex flex-col justify-center space-y-4">
+        <div className="md:col-span-7 min-w-0 w-full flex flex-col justify-center space-y-4">
           <div className="space-y-1">
             <span className="font-mono text-xs text-text-subtle">{project.year}</span>
             <h3
               id={headingId}
-              className="font-body text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-text"
+              className="font-body text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-text break-words hyphens-auto"
             >
               {project.title}
             </h3>
           </div>
 
-          <p className="font-body text-sm sm:text-base leading-relaxed text-text-muted">
+          <p className="font-body text-sm sm:text-base leading-relaxed text-text-muted break-words">
             {project.description}
           </p>
 
