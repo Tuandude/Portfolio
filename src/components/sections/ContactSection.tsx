@@ -16,7 +16,7 @@ export interface ContactSectionProps {
 
 const EMAIL = "dudenoblade@gmail.com";
 const GITHUB_URL = "https://github.com/Tuandude";
-const LINKEDIN_URL = "https://linkedin.com"; // placeholder link
+const LINKEDIN_URL = "https://linkedin.com/in/tuandude"; // updated profile link
 
 export function ContactSection({ className = "" }: ContactSectionProps) {
   const { copy } = useCopyToClipboard();

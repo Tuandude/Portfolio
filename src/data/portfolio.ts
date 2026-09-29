@@ -90,6 +90,11 @@ export const socialLinks: SocialLink[] = [
     icon: "github",
   },
   {
+    platform: "LinkedIn",
+    url: "https://linkedin.com/in/tuandude",
+    icon: "linkedin",
+  },
+  {
     platform: "Email",
     url: "mailto:dudenoblade@gmail.com",
     icon: "mail",
