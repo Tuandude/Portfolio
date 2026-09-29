@@ -6,11 +6,10 @@ import LoadingScreen from "@/components/sections/LoadingScreen";
 import HeroSection from "@/components/sections/HeroSection";
 import AboutSection from "@/components/sections/AboutSection";
 import SkillsSection from "@/components/sections/SkillsSection";
-import ProjectCard from "@/components/ui/ProjectCard";
+import ProjectsSection from "@/components/sections/ProjectsSection";
 import Marquee from "@/components/ui/Marquee";
 import Toast from "@/components/ui/Toast";
 import MagneticButton from "@/components/ui/MagneticButton";
-import { projects } from "@/data/portfolio";
 
 function App() {
   const [loaded, setLoaded] = useState(() => {
@@ -81,11 +80,8 @@ function App() {
         {/* 6. Skills Section (White Section with Overlap) */}
         <SkillsSection />
 
-        {/* 7. Projects Preview Section */}
-        <section id="projects" className="relative z-[10] -mt-8 rounded-t-[2.5rem] sm:rounded-t-[3.125rem] md:rounded-t-[3.75rem] bg-bg pt-24 pb-16 px-6 max-w-5xl mx-auto space-y-8">
-          <h2 className="font-display italic text-4xl heading-gradient">Featured Projects</h2>
-          <ProjectCard project={projects[0]} />
-        </section>
+        {/* 7. Projects Section (Phase A: Sticky structure) */}
+        <ProjectsSection />
 
         {/* 8. Contact Preview Section */}
         <section id="contact" className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-24 border-t border-stroke/40 text-center">

@@ -37,7 +37,7 @@ export function AboutSection({ className = "" }: AboutSectionProps) {
     <section
       id="about"
       aria-labelledby="about-heading"
-      className={`relative min-h-screen py-24 md:py-32 px-4 sm:px-6 md:px-10 flex flex-col justify-center overflow-hidden ${className}`}
+      className={`relative min-h-screen py-24 md:py-32 px-4 sm:px-6 md:px-10 flex flex-col justify-center overflow-x-clip ${className}`}
     >
       {/* Inline SVG noise filter overlay (opacity ~0.03, pointer-events none) */}
       <div
