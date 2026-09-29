@@ -39,7 +39,7 @@ export function ContactSection({ className = "" }: ContactSectionProps) {
     <section
       id="contact"
       aria-labelledby="contact-heading"
-      className={`relative min-h-screen py-24 md:py-32 px-4 sm:px-6 md:px-10 flex flex-col justify-center items-center text-center ${className}`}
+      className={`relative min-h-[100svh] py-24 md:py-32 px-4 sm:px-6 md:px-10 flex flex-col justify-center items-center text-center ${className}`}
     >
       <div className="max-w-[1200px] w-full mx-auto flex flex-col items-center gap-12 md:gap-16">
         {/* Section Heading */}
