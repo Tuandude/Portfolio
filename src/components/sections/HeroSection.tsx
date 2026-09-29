@@ -1,7 +1,7 @@
 /**
  * HeroSection component — primary introduction section.
- * Features staggered entrance animations, display typography, rotating tagline,
- * dual call-to-actions with magnetic physics, and an interactive scroll indicator.
+ * Features staggered entrance animations (triggered via isReady), display typography,
+ * rotating tagline, dual call-to-actions with magnetic physics, and an interactive scroll indicator.
  * Complies with Design Tokens v4 and accessibility requirements.
  */
 import { motion, useReducedMotion } from "framer-motion";
@@ -10,6 +10,7 @@ import MagneticButton from "@/components/ui/MagneticButton";
 import ScrollIndicator from "@/components/ui/ScrollIndicator";
 
 export interface HeroSectionProps {
+  isReady?: boolean; // triggers entrance animations once loading is complete
   className?: string;
 }
 
@@ -17,7 +18,7 @@ const EYEBROW_TEXT = "AVAILABLE FOR OPPORTUNITIES";
 const EASE_EXPO = [0.16, 1, 0.3, 1] as const;
 const EASE_SMOOTH = [0.25, 0.1, 0.25, 1.0] as const;
 
-export function HeroSection({ className = "" }: HeroSectionProps) {
+export function HeroSection({ isReady = true, className = "" }: HeroSectionProps) {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   const handleScrollTo = (targetId: string) => {
@@ -46,9 +47,11 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
               : { opacity: 0, filter: "blur(8px)", y: 16 }
           }
           animate={
-            prefersReducedMotion
-              ? { opacity: 1 }
-              : { opacity: 1, filter: "blur(0px)", y: 0 }
+            isReady
+              ? prefersReducedMotion
+                ? { opacity: 1 }
+                : { opacity: 1, filter: "blur(0px)", y: 0 }
+              : undefined
           }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.8,
@@ -70,7 +73,11 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }
           }
           animate={
-            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+            isReady
+              ? prefersReducedMotion
+                ? { opacity: 1 }
+                : { opacity: 1, y: 0 }
+              : undefined
           }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 1.2,
@@ -89,7 +96,11 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
           }
           animate={
-            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+            isReady
+              ? prefersReducedMotion
+                ? { opacity: 1 }
+                : { opacity: 1, y: 0 }
+              : undefined
           }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.7,
@@ -112,7 +123,11 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
           }
           animate={
-            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+            isReady
+              ? prefersReducedMotion
+                ? { opacity: 1 }
+                : { opacity: 1, y: 0 }
+              : undefined
           }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.7,
@@ -131,7 +146,11 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 20 }
           }
           animate={
-            prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }
+            isReady
+              ? prefersReducedMotion
+                ? { opacity: 1 }
+                : { opacity: 1, y: 0 }
+              : undefined
           }
           transition={{
             duration: prefersReducedMotion ? 0.15 : 0.7,
@@ -161,7 +180,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
       {/* 6. Scroll Indicator (pinned bottom center) */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        animate={isReady ? { opacity: 1 } : undefined}
         transition={{
           duration: prefersReducedMotion ? 0.15 : 0.8,
           delay: prefersReducedMotion ? 0 : 0.8,

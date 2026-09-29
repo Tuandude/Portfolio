@@ -19,6 +19,15 @@ function App() {
     }
   });
 
+  // Track when loading screen animation has fully finished unmounting
+  const [isHeroReady, setIsHeroReady] = useState(() => {
+    try {
+      return sessionStorage.getItem("portfolio-loaded") === "1";
+    } catch {
+      return false;
+    }
+  });
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -50,7 +59,7 @@ function App() {
   return (
     <div className="relative min-h-screen bg-bg text-text">
       {/* 1. Loading Screen */}
-      <AnimatePresence>
+      <AnimatePresence onExitComplete={() => setIsHeroReady(true)}>
         {!loaded && <LoadingScreen onComplete={() => setLoaded(true)} />}
       </AnimatePresence>
 
@@ -58,8 +67,8 @@ function App() {
       <Navbar />
 
       <main>
-        {/* 3. Hero Section */}
-        <HeroSection />
+        {/* 3. Hero Section — remains in DOM for 0 CLS, triggers staggered animation when isHeroReady */}
+        <HeroSection isReady={isHeroReady} />
 
         {/* 4. About Section */}
         <AboutSection />
