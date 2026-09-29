@@ -44,7 +44,7 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
         <div className="flex items-baseline gap-4 pl-1">
           <span
             aria-hidden="true"
-            className="project-number font-display italic text-4xl sm:text-5xl md:text-6xl leading-[1.3] pb-2 heading-gradient select-none inline-block"
+            className="project-number font-display italic text-4xl sm:text-5xl md:text-6xl leading-[1.3] pb-3 overflow-visible heading-gradient select-none inline-block"
           >
             {formattedIndex}
           </span>
