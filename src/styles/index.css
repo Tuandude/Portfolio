@@ -134,21 +134,33 @@ html {
    Multi-line: gradient applies to full block (accepted behavior)
    ========================================================================== */
 .heading-gradient {
-  background: linear-gradient(180deg, #666666 0%, #F5F5F5 50%, #666666 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--color-text);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .heading-gradient {
+    background: linear-gradient(180deg, #666666 0%, #F5F5F5 50%, #666666 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
 }
 
 /* Gradient Heading — White section (What I Do)
    Dark text variant for light backgrounds */
 .heading-gradient-light {
-  background: linear-gradient(180deg, #888888 0%, #0A0A0A 50%, #888888 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--color-bg);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .heading-gradient-light {
+    background: linear-gradient(180deg, #888888 0%, #0A0A0A 50%, #888888 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
 }
 
 /* ==========================================================================
