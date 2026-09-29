@@ -34,21 +34,6 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
 
   // Main counter and font loader sync
   useEffect(() => {
-    // If reduced motion is preferred, jump straight to 100%
-    if (prefersReducedMotion) {
-      setCount(100);
-      setIsExiting(true);
-      setTimeout(() => {
-        try {
-          sessionStorage.setItem("portfolio-loaded", "1");
-        } catch {
-          // Ignore private mode storage restrictions
-        }
-        onCompleteRef.current();
-      }, 150);
-      return;
-    }
-
     let animationFrameId: number;
     const startTime = performance.now();
     const duration = 1000; // 1000ms counter duration
