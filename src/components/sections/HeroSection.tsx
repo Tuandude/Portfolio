@@ -34,7 +34,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
   return (
     <section
       id="hero"
-      aria-label="Introduction"
+      aria-labelledby="hero-heading"
       className={`relative flex min-h-[100svh] flex-col items-center justify-center px-4 sm:px-6 pt-24 pb-16 text-center ${className}`}
     >
       <div className="flex max-w-4xl flex-col items-center gap-6 z-[10]">
@@ -65,6 +65,7 @@ export function HeroSection({ className = "" }: HeroSectionProps) {
 
         {/* 2. Main Name Heading */}
         <motion.h1
+          id="hero-heading"
           initial={
             prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 40 }
           }

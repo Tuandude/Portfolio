@@ -37,7 +37,7 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
   return (
     <article
       aria-labelledby={headingId}
-      className={`group relative flex flex-col justify-between rounded-3xl border border-stroke bg-surface p-6 md:p-8 min-h-[55vh] max-h-[78vh] overflow-hidden transition-colors duration-300 hover:border-stroke-hover ${className}`}
+      className={`group relative flex flex-col justify-between rounded-3xl border border-stroke bg-surface p-6 md:p-8 min-h-[55svh] max-h-[78svh] overflow-hidden transition-colors duration-300 hover:border-stroke-hover ${className}`}
     >
       {/* Top Header Row: Project Index, Category & Status Badge */}
       <div className="flex items-center justify-between border-b border-stroke/60 pb-4">

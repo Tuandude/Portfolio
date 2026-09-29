@@ -32,7 +32,7 @@ export function ScrollIndicator({
     </>
   );
 
-  const baseClasses = `group inline-flex flex-col items-center gap-3 cursor-pointer bg-transparent border-none p-2 focus-visible:outline-none no-underline ${className}`;
+  const baseClasses = `group inline-flex flex-col items-center gap-3 cursor-pointer bg-transparent border-none p-2 focus-visible:outline-2 focus-visible:outline-accent-start focus-visible:outline-offset-2 no-underline ${className}`;
 
   if (onClick) {
     return (

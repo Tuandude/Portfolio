@@ -44,7 +44,7 @@ function StickyCard({ project, index, total, isMobile }: StickyCardProps) {
   const activeScale = isMobile || prefersReducedMotion || isLast ? 1 : rawScale;
 
   return (
-    <div ref={wrapperRef} className="relative h-auto sm:h-[85vh]">
+    <div ref={wrapperRef} className="relative h-auto sm:h-[85svh]">
       <motion.div
         className="static sm:sticky"
         style={{

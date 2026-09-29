@@ -25,9 +25,11 @@ export function Marquee({
   return (
     <div
       dir="ltr"
+      aria-label={typeof content === "string" ? content.trim() : "Announcement marquee"}
       className={`overflow-hidden select-none whitespace-nowrap flex w-full ${className}`}
     >
       <div
+        aria-hidden="true"
         className="marquee-track flex shrink-0"
         style={{
           animation: `marquee ${speedSeconds}s linear infinite`,

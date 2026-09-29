@@ -172,6 +172,7 @@ html {
 
 /* Placeholder card gradient for ProjectCard */
 .placeholder-gradient {
+  background: linear-gradient(135deg, rgba(137, 170, 204, 0.2) 0%, rgba(78, 133, 191, 0.1) 100%);
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--color-accent-start) 20%, transparent) 0%,
