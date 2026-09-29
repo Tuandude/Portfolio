@@ -69,7 +69,7 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
       {/* Main Grid Content: Visual Placeholder (left on desktop) & Details (right on desktop) */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-center py-6 my-auto">
         {/* Visual Placeholder */}
-        <div className="md:col-span-5 relative aspect-[16/10] overflow-hidden rounded-2xl border border-stroke/50 flex items-center justify-center bg-gradient-to-br from-[#89AACC]/20 to-[#4E85BF]/10 select-none">
+        <div className="md:col-span-5 relative aspect-[16/10] overflow-hidden rounded-2xl border border-stroke/50 flex items-center justify-center placeholder-gradient select-none">
           {/* Subtle noise grid pattern overlay */}
           <div
             className="absolute inset-0 opacity-20 pointer-events-none"

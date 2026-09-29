@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import Lenis from "lenis";
+import { AnimatePresence } from "framer-motion";
+import Navbar from "@/components/layout/Navbar";
+import LoadingScreen from "@/components/sections/LoadingScreen";
 import FadeIn from "@/components/ui/FadeIn";
 import RotatingText from "@/components/ui/RotatingText";
 import AnimatedWords from "@/components/ui/AnimatedWords";
@@ -11,6 +14,14 @@ import Toast from "@/components/ui/Toast";
 import { projects } from "@/data/portfolio";
 
 function App() {
+  const [loaded, setLoaded] = useState(() => {
+    try {
+      return sessionStorage.getItem("portfolio-loaded") === "1";
+    } catch {
+      return false;
+    }
+  });
+
   const [toastVisible, setToastVisible] = useState(false);
 
   useEffect(() => {
@@ -26,11 +37,16 @@ function App() {
     }
     rafId = requestAnimationFrame(raf);
 
+    // Scroll to initial hash after load if present
+    if (loaded && window.location.hash) {
+      lenis.scrollTo(window.location.hash, { immediate: true });
+    }
+
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
     };
-  }, []);
+  }, [loaded]);
 
   const triggerToast = () => {
     setToastVisible(true);
@@ -39,9 +55,17 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-bg text-text">
+      {/* Entry Loading Screen */}
+      <AnimatePresence>
+        {!loaded && <LoadingScreen onComplete={() => setLoaded(true)} />}
+      </AnimatePresence>
+
+      {/* Primary Fixed Floating Navigation */}
+      <Navbar />
+
       <main>
         {/* Hero Preview Section */}
-        <section id="hero" className="flex min-h-screen flex-col items-center justify-center px-4 gap-8">
+        <section id="hero" className="flex min-h-screen flex-col items-center justify-center px-4 gap-8 pt-20">
           <div className="text-center">
             <FadeIn>
               <h1 className="font-display italic text-5xl sm:text-7xl">
@@ -55,7 +79,7 @@ function App() {
             </FadeIn>
             <FadeIn delay={0.3}>
               <p className="mt-6 text-text-muted" style={{ fontSize: "clamp(0.875rem, 1.2vw, 1rem)" }}>
-                Testing 8/8 primitives in comprehensive sandbox.
+                Navbar, LoadingScreen and all primitives connected seamlessly.
               </p>
             </FadeIn>
           </div>
@@ -79,9 +103,10 @@ function App() {
           <Marquee text="LET'S BUILD SOMETHING • " className="font-mono text-sm tracking-wider text-text-muted" />
         </div>
 
-        {/* About Preview Section for testing AnimatedWords */}
+        {/* About Preview Section */}
         <section id="about" className="flex min-h-screen items-center justify-center px-6 py-24">
-          <div className="max-w-2xl text-center">
+          <div className="max-w-2xl text-center space-y-8">
+            <h2 className="font-display italic text-4xl heading-gradient">About Me</h2>
             <AnimatedWords
               text="I am an AI student based in Ho Chi Minh City, passionate about building products and exploring the intersection of machine learning and creative coding. Every model is trained to converge, every interface crafted with care."
               className="text-xl sm:text-2xl font-light leading-relaxed text-text"
@@ -89,10 +114,24 @@ function App() {
           </div>
         </section>
 
-        {/* Projects Preview Section for testing ProjectCard */}
+        {/* Projects Preview Section */}
         <section id="projects" className="max-w-5xl mx-auto px-6 py-24 space-y-8">
-          <h2 className="font-display italic text-4xl heading-gradient">Featured Project Preview</h2>
+          <h2 className="font-display italic text-4xl heading-gradient">Featured Projects</h2>
           <ProjectCard project={projects[0]} />
+        </section>
+
+        {/* Contact Section Preview */}
+        <section id="contact" className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-24 border-t border-stroke/40 text-center">
+          <h2 className="font-display italic text-4xl heading-gradient mb-4">Get In Touch</h2>
+          <p className="text-text-muted max-w-md mb-8">
+            Available for internships and ambitious product collaborations.
+          </p>
+          <MagneticButton
+            className="rounded-full accent-gradient px-8 py-3.5 text-bg font-semibold cursor-pointer"
+            onClick={triggerToast}
+          >
+            Say Hello
+          </MagneticButton>
         </section>
       </main>
 
