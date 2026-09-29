@@ -2,11 +2,11 @@
  * ProjectsSection component — Phase B: sticky structure + scroll-driven scale animation.
  * Renders project showcase using sticky stacking cards layout.
  * Each card is encapsulated in its own StickyCard component to satisfy Rules of Hooks.
- * Cards 0..(N-2) scale smoothly from 1 -> 0.96 as the user scrolls past their wrapper.
+ * Cards 0..(N-2) scale smoothly from 1 -> 0.96 as the user scrolls past their wrapper on desktop (>=640px).
  * The final card (N-1) remains at scale 1 without shrinking.
- * On mobile (<640px) or prefers-reduced-motion, scale animation is disabled (fixed at 1).
+ * On mobile (<640px) or prefers-reduced-motion, scale animation is completely disabled (fixed at 1).
  */
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import FadeIn from "@/components/ui/FadeIn";
 import ProjectCard from "@/components/ui/ProjectCard";
@@ -21,12 +21,13 @@ interface StickyCardProps {
   project: Project;
   index: number;
   total: number;
+  isMobile: boolean;
 }
 
 /**
  * Child component managing individual scroll measurement and scale transformation.
  */
-function StickyCard({ project, index, total }: StickyCardProps) {
+function StickyCard({ project, index, total, isMobile }: StickyCardProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion() ?? false;
 
@@ -39,7 +40,8 @@ function StickyCard({ project, index, total }: StickyCardProps) {
 
   // Scale down earlier cards to 0.96 as the next card scrolls up to cover them
   const rawScale = useTransform(scrollYProgress, [0, 1], [1, isLast ? 1 : 0.96]);
-  const activeScale = prefersReducedMotion || isLast ? 1 : rawScale;
+  // Strictly disable scale on mobile (<640px), reduced-motion, or for the last card
+  const activeScale = isMobile || prefersReducedMotion || isLast ? 1 : rawScale;
 
   return (
     <div ref={wrapperRef} className="relative h-auto sm:h-[85vh]">
@@ -59,6 +61,17 @@ function StickyCard({ project, index, total }: StickyCardProps) {
 }
 
 export function ProjectsSection({ className = "" }: ProjectsSectionProps) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mq.matches);
+
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   return (
     <section
       id="projects"
@@ -86,6 +99,7 @@ export function ProjectsSection({ className = "" }: ProjectsSectionProps) {
             project={project}
             index={i}
             total={projects.length}
+            isMobile={isMobile}
           />
         ))}
       </div>
