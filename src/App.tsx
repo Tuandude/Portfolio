@@ -3,6 +3,7 @@ import Lenis from "lenis";
 import FadeIn from "@/components/ui/FadeIn";
 import RotatingText from "@/components/ui/RotatingText";
 import AnimatedWords from "@/components/ui/AnimatedWords";
+import MagneticButton from "@/components/ui/MagneticButton";
 
 function App() {
   useEffect(() => {
@@ -28,7 +29,7 @@ function App() {
     <div className="relative min-h-screen bg-bg text-text">
       <main>
         {/* Hero Preview Section */}
-        <section className="flex min-h-screen items-center justify-center px-4">
+        <section className="flex min-h-screen flex-col items-center justify-center px-4 gap-8">
           <div className="text-center">
             <FadeIn>
               <h1 className="font-display italic text-5xl sm:text-7xl">
@@ -42,10 +43,27 @@ function App() {
             </FadeIn>
             <FadeIn delay={0.3}>
               <p className="mt-6 text-text-muted" style={{ fontSize: "clamp(0.875rem, 1.2vw, 1rem)" }}>
-                Scroll down to test AnimatedWords scroll reveal.
+                Testing MagneticButton and AnimatedWords primitives.
               </p>
             </FadeIn>
           </div>
+
+          <FadeIn delay={0.5}>
+            <div className="flex gap-4">
+              <MagneticButton
+                className="rounded-full bg-surface border border-stroke px-6 py-3 text-text hover:border-stroke-hover cursor-pointer"
+                onClick={() => console.log("View projects clicked")}
+              >
+                View Projects
+              </MagneticButton>
+              <MagneticButton
+                className="rounded-full accent-gradient px-6 py-3 text-bg font-medium cursor-pointer"
+                onClick={() => console.log("Contact clicked")}
+              >
+                Contact Me
+              </MagneticButton>
+            </div>
+          </FadeIn>
         </section>
 
         {/* About Preview Section for testing AnimatedWords */}
