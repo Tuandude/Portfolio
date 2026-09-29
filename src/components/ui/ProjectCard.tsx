@@ -40,11 +40,11 @@ export function ProjectCard({ project, className = "" }: ProjectCardProps) {
       className={`group relative flex flex-col justify-between rounded-3xl border border-stroke bg-surface p-6 md:p-8 min-h-[55svh] max-h-[78svh] overflow-hidden transition-colors duration-300 hover:border-stroke-hover ${className}`}
     >
       {/* Top Header Row: Project Index, Category & Status Badge */}
-      <div className="flex items-center justify-between border-b border-stroke/60 pt-2 pb-4">
+      <div className="flex items-center justify-between border-b border-stroke/60 pt-3 pb-4">
         <div className="flex items-baseline gap-4 pl-1">
           <span
             aria-hidden="true"
-            className="font-display italic text-4xl sm:text-5xl md:text-6xl heading-gradient select-none"
+            className="project-number font-display italic text-4xl sm:text-5xl md:text-6xl leading-[1.3] pb-2 heading-gradient select-none inline-block"
           >
             {formattedIndex}
           </span>
