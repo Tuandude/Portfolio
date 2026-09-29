@@ -48,15 +48,15 @@ export function SkillsSection({ className = "" }: SkillsSectionProps) {
     <section
       id="skills"
       aria-labelledby="skills-heading"
-      className={`relative z-[10] -mt-8 rounded-t-[2.5rem] sm:rounded-t-[3.125rem] md:rounded-t-[3.75rem] bg-white text-bg pt-32 pb-24 md:pt-40 md:pb-32 px-4 sm:px-6 md:px-10 shadow-2xl ${className}`}
+      className={`relative z-[10] -mt-8 rounded-t-[2.5rem] sm:rounded-t-[3.125rem] md:rounded-t-[3.75rem] bg-white text-bg pt-48 pb-24 md:pt-56 md:pb-32 px-4 sm:px-6 md:px-10 overflow-visible shadow-2xl ${className}`}
     >
-      <div className="max-w-[1200px] mx-auto flex flex-col items-center">
+      <div className="max-w-[1200px] mx-auto flex flex-col items-center overflow-visible">
         {/* Section Heading with dark gradient */}
-        <FadeIn className="pt-4 pb-2">
+        <FadeIn className="pt-4 pb-6 overflow-visible">
           <h2
             id="skills-heading"
             style={{ fontSize: "clamp(3rem, 12vw, 10rem)" }}
-            className="font-display italic leading-[1.05] py-2 tracking-tight heading-gradient-light text-center"
+            className="font-display italic leading-[1.2] pt-4 pb-6 px-4 tracking-tight heading-gradient-light text-center overflow-visible"
           >
             What I Do
           </h2>
@@ -72,7 +72,7 @@ export function SkillsSection({ className = "" }: SkillsSectionProps) {
                   <div className="flex items-baseline gap-4">
                     <span
                       aria-hidden="true"
-                      className="font-display italic text-4xl md:text-5xl leading-normal pb-1 heading-gradient-light select-none shrink-0"
+                      className="project-number font-display italic text-4xl md:text-5xl leading-[1.3] pb-2 heading-gradient-light select-none shrink-0"
                     >
                       {skill.number}
                     </span>
