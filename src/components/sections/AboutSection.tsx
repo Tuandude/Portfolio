@@ -37,11 +37,11 @@ export function AboutSection({ className = "" }: AboutSectionProps) {
     <section
       id="about"
       aria-labelledby="about-heading"
-      className={`relative min-h-[100svh] py-24 md:py-32 px-4 sm:px-6 md:px-10 flex flex-col justify-center overflow-x-clip ${className}`}
+      className={`relative min-h-[100svh] py-24 md:py-32 px-4 sm:px-6 md:px-10 flex flex-col justify-center ${className}`}
     >
-      {/* Inline SVG noise filter overlay (opacity ~0.03, pointer-events none) */}
+      {/* Inline SVG noise filter overlay (clipped specifically inside its container) */}
       <div
-        className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03]"
+        className="absolute inset-0 pointer-events-none z-[1] opacity-[0.03] overflow-hidden"
         aria-hidden="true"
       >
         <svg className="w-full h-full">
@@ -80,21 +80,21 @@ export function AboutSection({ className = "" }: AboutSectionProps) {
         </div>
 
         {/* "Currently" Activity Block */}
-        <FadeIn delay={0.2} className="w-full max-w-lg mx-auto">
-          <div className="rounded-2xl border border-stroke bg-surface/40 p-6 backdrop-blur-sm text-left space-y-3">
-            <div className="font-mono text-xs uppercase tracking-wider text-text-muted pb-1 border-b border-stroke/40">
+        <FadeIn delay={0.2} className="w-full max-w-xl mx-auto">
+          <div className="rounded-2xl border border-stroke bg-surface/40 p-6 sm:p-8 backdrop-blur-sm text-left space-y-4">
+            <div className="font-mono text-xs uppercase tracking-wider text-text-muted pb-2 border-b border-stroke/40">
               // Currently
             </div>
-            <ul className="space-y-2.5 list-none p-0 m-0">
+            <ul className="space-y-3 list-none p-0 m-0">
               {CURRENT_ITEMS.map((item) => (
                 <li
                   key={item.label}
-                  className="flex items-start gap-3 font-mono text-xs sm:text-sm"
+                  className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 font-mono text-xs sm:text-sm"
                 >
-                  <span className="text-text-subtle min-w-[76px] sm:min-w-[80px]">
+                  <span className="text-text-subtle min-w-[85px] shrink-0 font-medium">
                     {item.label}:
                   </span>
-                  <span className="text-text-muted">{item.value}</span>
+                  <span className="text-text-muted break-words leading-relaxed">{item.value}</span>
                 </li>
               ))}
             </ul>
