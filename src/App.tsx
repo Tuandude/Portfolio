@@ -3,14 +3,12 @@ import Lenis from "lenis";
 import { AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import LoadingScreen from "@/components/sections/LoadingScreen";
-import FadeIn from "@/components/ui/FadeIn";
-import RotatingText from "@/components/ui/RotatingText";
+import HeroSection from "@/components/sections/HeroSection";
 import AnimatedWords from "@/components/ui/AnimatedWords";
-import MagneticButton from "@/components/ui/MagneticButton";
 import ProjectCard from "@/components/ui/ProjectCard";
-import ScrollIndicator from "@/components/ui/ScrollIndicator";
 import Marquee from "@/components/ui/Marquee";
 import Toast from "@/components/ui/Toast";
+import MagneticButton from "@/components/ui/MagneticButton";
 import { projects } from "@/data/portfolio";
 
 function App() {
@@ -30,6 +28,9 @@ function App() {
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     });
 
+    // Expose Lenis instance globally on window for components (Navbar, Hero CTA, ScrollIndicator)
+    window.__lenis = lenis;
+
     let rafId: number;
     function raf(time: number) {
       lenis.raf(time);
@@ -37,7 +38,7 @@ function App() {
     }
     rafId = requestAnimationFrame(raf);
 
-    // Scroll to initial hash after load if present
+    // If already loaded on mount, handle hash navigation immediately
     if (loaded && window.location.hash) {
       lenis.scrollTo(window.location.hash, { immediate: true });
     }
@@ -45,6 +46,7 @@ function App() {
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      window.__lenis = undefined;
     };
   }, [loaded]);
 
@@ -55,55 +57,24 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-bg text-text">
-      {/* Entry Loading Screen */}
+      {/* 1. Loading Screen */}
       <AnimatePresence>
         {!loaded && <LoadingScreen onComplete={() => setLoaded(true)} />}
       </AnimatePresence>
 
-      {/* Primary Fixed Floating Navigation */}
+      {/* 2. Floating Navbar */}
       <Navbar />
 
       <main>
-        {/* Hero Preview Section */}
-        <section id="hero" className="flex min-h-screen flex-col items-center justify-center px-4 gap-8 pt-20">
-          <div className="text-center">
-            <FadeIn>
-              <h1 className="font-display italic text-5xl sm:text-7xl">
-                An{" "}
-                <RotatingText
-                  words={["AI Student", "Vibe Coder", "Builder"]}
-                  className="text-accent-start"
-                />{" "}
-                based in HCMC
-              </h1>
-            </FadeIn>
-            <FadeIn delay={0.3}>
-              <p className="mt-6 text-text-muted" style={{ fontSize: "clamp(0.875rem, 1.2vw, 1rem)" }}>
-                Navbar, LoadingScreen and all primitives connected seamlessly.
-              </p>
-            </FadeIn>
-          </div>
+        {/* 3. Hero Section (Staggered entrance when mounted) */}
+        {loaded && <HeroSection />}
 
-          <FadeIn delay={0.5}>
-            <div className="flex gap-4">
-              <MagneticButton
-                className="rounded-full bg-surface border border-stroke px-6 py-3 text-text hover:border-stroke-hover cursor-pointer"
-                onClick={triggerToast}
-              >
-                Copy Contact (Toast Test)
-              </MagneticButton>
-            </div>
-          </FadeIn>
-
-          <ScrollIndicator targetId="about" />
-        </section>
-
-        {/* Marquee Banner */}
+        {/* 4. Marquee Banner */}
         <div className="py-8 border-y border-stroke/40 bg-surface/30">
           <Marquee text="LET'S BUILD SOMETHING • " className="font-mono text-sm tracking-wider text-text-muted" />
         </div>
 
-        {/* About Preview Section */}
+        {/* 5. About Preview Section */}
         <section id="about" className="flex min-h-screen items-center justify-center px-6 py-24">
           <div className="max-w-2xl text-center space-y-8">
             <h2 className="font-display italic text-4xl heading-gradient">About Me</h2>
@@ -114,13 +85,13 @@ function App() {
           </div>
         </section>
 
-        {/* Projects Preview Section */}
+        {/* 6. Projects Preview Section */}
         <section id="projects" className="max-w-5xl mx-auto px-6 py-24 space-y-8">
           <h2 className="font-display italic text-4xl heading-gradient">Featured Projects</h2>
           <ProjectCard project={projects[0]} />
         </section>
 
-        {/* Contact Section Preview */}
+        {/* 7. Contact Preview Section */}
         <section id="contact" className="min-h-[50vh] flex flex-col items-center justify-center px-6 py-24 border-t border-stroke/40 text-center">
           <h2 className="font-display italic text-4xl heading-gradient mb-4">Get In Touch</h2>
           <p className="text-text-muted max-w-md mb-8">
@@ -135,7 +106,7 @@ function App() {
         </section>
       </main>
 
-      {/* Test Portal Toast */}
+      {/* Global Toast */}
       <Toast message="Email copied to clipboard!" isVisible={toastVisible} />
     </div>
   );

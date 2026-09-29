@@ -55,12 +55,12 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
     const checkFinished = () => {
       if (counterDone && barrierDone) {
         setIsExiting(true);
-        try {
-          sessionStorage.setItem("portfolio-loaded", "1");
-        } catch {
-          // Ignore private mode storage restrictions
-        }
         setTimeout(() => {
+          try {
+            sessionStorage.setItem("portfolio-loaded", "1");
+          } catch {
+            // Ignore private mode storage restrictions
+          }
           onCompleteRef.current();
         }, 300); // 300ms fade-out transition duration
       }

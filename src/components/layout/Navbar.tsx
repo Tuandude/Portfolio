@@ -2,7 +2,7 @@
  * Navbar component — fixed floating pill navigation.
  * Desktop: floating pill at top-center with scroll shadow.
  * Mobile (<768px): compact pill with logo + menu button, opening full-screen overlay.
- * Follows Design Tokens v4 and accessibility standards.
+ * Follows Design Tokens v4 and accessibility standards with active scroll spy.
  */
 import { useState, useEffect } from "react";
 import {
@@ -18,34 +18,49 @@ import { Menu, X } from "lucide-react";
 interface NavLinkItem {
   name: string;
   href: string;
+  id: string;
 }
 
 const NAV_LINKS: NavLinkItem[] = [
-  { name: "Home", href: "#hero" },
-  { name: "Projects", href: "#projects" },
-  { name: "About", href: "#about" },
-  { name: "Contact", href: "#contact" },
+  { name: "Home", href: "#hero", id: "hero" },
+  { name: "Projects", href: "#projects", id: "projects" },
+  { name: "About", href: "#about", id: "about" },
+  { name: "Contact", href: "#contact", id: "contact" },
 ];
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeHash, setActiveHash] = useState("#hero");
+  const [activeSection, setActiveSection] = useState("hero");
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   const { scrollY } = useScroll();
   const shadowOpacity = useTransform(scrollY, [0, 20], [0, 0.4]);
   const dynamicBoxShadow = useMotionTemplate`0 8px 32px rgba(0, 0, 0, ${shadowOpacity})`;
 
-  // Handle active hash tracking on scroll/mount
+  // IntersectionObserver to spy on active section as user scrolls
   useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash) {
-        setActiveHash(window.location.hash);
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      // Find the entry with highest intersection ratio or topmost visible
+      const visibleEntries = entries.filter((e) => e.isIntersecting);
+      if (visibleEntries.length > 0) {
+        // Sort by bounding client top to prefer the current reading section
+        visibleEntries.sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+        setActiveSection(visibleEntries[0].target.id);
       }
     };
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    const observer = new IntersectionObserver(observerCallback, {
+      root: null,
+      rootMargin: "-20% 0px -60% 0px", // Focus trigger zone in viewport upper half
+      threshold: [0, 0.2, 0.5],
+    });
+
+    NAV_LINKS.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   // Handle ESC key to close mobile menu
@@ -60,20 +75,23 @@ export function Navbar() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileMenuOpen]);
 
-  // Lock body scroll when mobile menu is open
+  // Lock body scroll and stop Lenis when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = "hidden";
+      window.__lenis?.stop();
     } else {
       document.body.style.overflow = "";
+      window.__lenis?.start();
     }
     return () => {
       document.body.style.overflow = "";
+      window.__lenis?.start();
     };
   }, [mobileMenuOpen]);
 
-  const handleLinkClick = (href: string) => {
-    setActiveHash(href);
+  const handleLinkClick = (id: string) => {
+    setActiveSection(id);
     setMobileMenuOpen(false);
   };
 
@@ -88,7 +106,7 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <a
             href="#hero"
-            onClick={() => handleLinkClick("#hero")}
+            onClick={() => handleLinkClick("hero")}
             className="font-display italic text-lg font-bold text-text tracking-tight hover:opacity-80 transition-opacity"
             aria-label="Tuấn Đặng home"
           >
@@ -99,12 +117,12 @@ export function Navbar() {
 
           <ul className="flex items-center gap-1 list-none p-0 m-0">
             {NAV_LINKS.map((link) => {
-              const isActive = activeHash === link.href;
+              const isActive = activeSection === link.id;
               return (
                 <li key={link.name}>
                   <a
                     href={link.href}
-                    onClick={() => handleLinkClick(link.href)}
+                    onClick={() => handleLinkClick(link.id)}
                     aria-current={isActive ? "page" : undefined}
                     className={`rounded-full px-3.5 py-1.5 font-body text-sm font-medium transition-colors duration-200 ${
                       isActive
@@ -124,7 +142,7 @@ export function Navbar() {
         <div className="flex md:hidden items-center justify-between gap-4">
           <a
             href="#hero"
-            onClick={() => handleLinkClick("#hero")}
+            onClick={() => handleLinkClick("hero")}
             className="font-display italic text-base font-bold text-text px-1"
             aria-label="Tuấn Đặng home"
           >
@@ -183,7 +201,7 @@ export function Navbar() {
                 <a
                   key={link.name}
                   href={link.href}
-                  onClick={() => handleLinkClick(link.href)}
+                  onClick={() => handleLinkClick(link.id)}
                   className="font-display italic text-4xl sm:text-5xl text-text hover:text-accent-start transition-colors no-underline"
                 >
                   {link.name}
