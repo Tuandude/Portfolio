@@ -1,7 +1,7 @@
 import type { Profile, Skill, Project, SocialLink } from "@/types";
 
 export const profile: Profile = {
-  name: "Tuấn Đặng",
+  name: "Tuan Dang",
   displayName: "Đặng Văn Bảo Tuấn",
   tagline: "AI Student · Vibe Coder · Builder",
   bio: [

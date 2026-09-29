@@ -37,7 +37,7 @@ export function Footer({ className = "" }: FooterProps) {
       <div className="max-w-[1200px] mx-auto flex flex-col sm:flex-row justify-between items-center py-8 px-4 sm:px-6 md:px-10 gap-4">
         {/* Left: Copyright text */}
         <p className="font-body text-xs sm:text-sm text-text-subtle text-center sm:text-left">
-          © {new Date().getFullYear()} Tuấn Đặng. All rights reserved.
+          © {new Date().getFullYear()} Tuan Dang. All rights reserved.
         </p>
 
         {/* Right: Back to top button */}

@@ -183,7 +183,7 @@ export function Navbar() {
             {/* Top Close Bar */}
             <div className="flex items-center justify-between">
               <span className="font-display italic text-2xl font-bold text-text">
-                Tuấn Đặng
+                Tuan Dang
               </span>
 
               <button

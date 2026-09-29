@@ -87,7 +87,7 @@ export function HeroSection({ isReady = true, className = "" }: HeroSectionProps
           style={{ fontSize: "clamp(3rem, 10vw, 8rem)" }}
           className="font-display italic leading-[0.95] tracking-tight heading-gradient"
         >
-          Tuấn Đặng
+          Tuan Dang
         </motion.h1>
 
         {/* 3. Rotating Tagline */}
