@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import FadeIn from "@/components/ui/FadeIn";
+import RotatingText from "@/components/ui/RotatingText";
 
 function App() {
   useEffect(() => {
@@ -25,14 +26,16 @@ function App() {
   return (
     <div className="relative min-h-screen bg-bg text-text">
       <main>
-        <section className="flex min-h-screen items-center justify-center">
+        <section className="flex min-h-screen items-center justify-center px-4">
           <div className="text-center">
             <FadeIn>
-              <h1
-                className="font-display italic leading-none tracking-tight heading-gradient"
-                style={{ fontSize: "clamp(3rem, 10vw, 8rem)" }}
-              >
-                Tuấn Đặng
+              <h1 className="font-display italic text-5xl sm:text-7xl">
+                An{" "}
+                <RotatingText
+                  words={["AI Student", "Vibe Coder", "Builder"]}
+                  className="text-accent-start"
+                />{" "}
+                based in HCMC
               </h1>
             </FadeIn>
             <FadeIn delay={0.3}>
