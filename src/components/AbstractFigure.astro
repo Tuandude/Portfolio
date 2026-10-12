@@ -1,0 +1,138 @@
+---
+interface Props {
+  id: string;
+  caption: string;
+  category: string;
+}
+
+const { id, caption, category } = Astro.props;
+
+const isFig1 = id === '01' || id === 'coffee-roastery';
+const isFig2 = id === '02' || id === 'architecture-studio';
+const isFig3 = id === '03' || id === 'creative-agency';
+
+const diagramCode = isFig1 ? '01 // ROAST_ENGINE' : isFig2 ? '02 // SPATIAL_ARCH' : '03 // VORTEX_3D';
+
+const roastLevels = [
+  { label: 'LIGHT', temp: '196°C', ratio: '1:16', active: false },
+  { label: 'MEDIUM', temp: '210°C', ratio: '1:15', active: true },
+  { label: 'DARK', temp: '224°C', ratio: '1:14', active: false },
+];
+---
+
+<figure class="figure-container border border-hairline bg-paper/50 rounded-xs overflow-hidden p-4 sm:p-5 flex flex-col justify-between select-none m-0">
+  <!-- Top figure meta bar -->
+  <div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-ink-muted pb-3 border-b border-hairline/60">
+    <span class="flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-accent inline-block"></span>
+      <span>DIAGRAM_{diagramCode}</span>
+    </span>
+    <span class="text-[10px] text-ink-muted/80">{category}</span>
+  </div>
+
+  <!-- Figure visual surface -->
+  <div class="relative w-full h-36 sm:h-44 my-3 bg-card border border-hairline/50 rounded-xs flex items-center justify-center overflow-hidden">
+    {isFig1 && (
+      <div class="w-full h-full p-4 flex flex-col justify-between relative">
+        <div class="absolute inset-0 bg-graph-grid opacity-50"></div>
+        <!-- Top Telemetry -->
+        <div class="relative z-10 flex items-center justify-between text-[10px] font-mono text-ink-muted">
+          <span>BEAN_TEMP: <strong class="text-accent-text">210.4°C</strong></span>
+          <span class="px-1.5 py-0.5 rounded-xs bg-accent/15 text-accent-text border border-accent/30 font-semibold">BREW 1:15</span>
+        </div>
+
+        <!-- SVG Roasting Curve -->
+        <div class="relative z-10 my-auto py-1">
+          <svg viewBox="0 0 240 60" class="w-full h-14 overflow-visible" aria-hidden="true">
+            <path d="M 0 50 Q 45 55, 90 32 T 180 14 T 235 6" fill="none" stroke="currentColor" class="text-accent" stroke-width="2" />
+            <path d="M 0 50 Q 45 55, 90 32 T 180 14 T 235 6 L 235 58 L 0 58 Z" fill="currentColor" class="text-accent/10" />
+            <circle cx="90" cy="32" r="3" class="fill-paper stroke-accent" stroke-width="2" />
+            <circle cx="180" cy="14" r="3.5" class="fill-accent" />
+            <line x1="180" y1="14" x2="180" y2="58" stroke="currentColor" class="text-accent/40" stroke-dasharray="2 2" stroke-width="1" />
+          </svg>
+        </div>
+
+        <!-- Roast Matrix Pills -->
+        <div class="relative z-10 grid grid-cols-3 gap-1.5">
+          {roastLevels.map((r) => (
+            <div class={`px-2 py-1 rounded-xs border text-[9px] font-mono flex items-center justify-between ${r.active ? 'bg-accent text-white border-accent font-bold' : 'bg-paper/80 text-ink-muted border-hairline'}`}>
+              <span>{r.label}</span>
+              <span>{r.temp}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {isFig2 && (
+      <div class="w-full h-full p-4 flex flex-col justify-between relative">
+        <div class="absolute inset-0 bg-graph-grid opacity-50"></div>
+        <div class="relative z-10 flex items-center justify-between text-[10px] font-mono text-ink-muted">
+          <span>RAW_STATE [BEFORE]</span>
+          <span class="text-accent-text font-bold">⇄ SLIDER_50%</span>
+          <span>COMPLETED [AFTER]</span>
+        </div>
+
+        <!-- Split Before / After Architectural Schematic -->
+        <div class="relative z-10 w-full h-20 border border-hairline-strong rounded-xs overflow-hidden grid grid-cols-2">
+          <!-- Left: Raw wireframe -->
+          <div class="bg-paper/70 p-2 flex flex-col justify-between border-r-2 border-accent relative">
+            <div class="w-full h-full border border-dashed border-ink-muted/40 flex items-center justify-center">
+              <span class="text-[9px] font-mono text-ink-muted uppercase">CAD // WIREFRAME</span>
+            </div>
+          </div>
+          <!-- Right: Rendered Monolith -->
+          <div class="bg-accent/10 p-2 flex flex-col justify-between relative">
+            <div class="w-full h-full border border-accent/50 bg-accent/15 flex items-center justify-center">
+              <span class="text-[9px] font-mono text-accent-text font-bold uppercase">MONOLITH // VILLA</span>
+            </div>
+          </div>
+          <!-- Center handle -->
+          <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 flex items-center justify-center">
+            <div class="w-5 h-5 rounded-full bg-accent text-white text-[9px] font-mono flex items-center justify-center shadow-xs">
+              ↔
+            </div>
+          </div>
+        </div>
+
+        <div class="relative z-10 flex justify-between items-center text-[9px] font-mono text-ink-muted">
+          <span>4 DISTINCT TYPOLOGIES // DA NANG</span>
+          <span class="text-accent-text font-semibold">EST: $380,000 / 9.5 TỶ VNĐ</span>
+        </div>
+      </div>
+    )}
+
+    {isFig3 && (
+      <div class="w-full h-full relative p-4 flex flex-col justify-between overflow-hidden">
+        <div class="absolute inset-0 bg-graph-grid opacity-50"></div>
+        <div class="relative z-10 flex items-center justify-between text-[10px] font-mono text-ink-muted">
+          <span>3-MODE 3D WARP CANVAS // GLSL</span>
+          <span class="text-accent-text font-bold">ROTATE_X: +12° / Y: -15°</span>
+        </div>
+
+        <!-- 3D Tilt Card Wireframe Representation -->
+        <div class="relative z-10 my-auto flex items-center justify-center">
+          <div class="w-44 h-16 border-2 border-accent bg-accent/10 rounded-xs p-2 flex flex-col justify-between shadow-[4px_4px_0px_var(--theme-accent)] -rotate-2">
+            <div class="flex items-center justify-between text-[9px] font-mono">
+              <span class="px-1 bg-accent text-white font-bold">3D_TILT</span>
+              <span class="text-ink font-semibold">60 FPS</span>
+            </div>
+            <div class="text-[10px] font-mono font-bold text-ink tracking-tight truncate">
+              USD PRICING STACK: ACTIVE
+            </div>
+          </div>
+        </div>
+
+        <div class="relative z-10 flex items-center justify-between text-[9px] font-mono text-ink-muted">
+          <span>NEO-BRUTALIST UI</span>
+          <span>GLARE: RADIAL_GRADIENT</span>
+        </div>
+      </div>
+    )}
+  </div>
+
+  <!-- Figure caption -->
+  <figcaption class="text-[11px] font-mono text-ink-muted tracking-tight pt-1 leading-snug">
+    {caption}
+  </figcaption>
+</figure>

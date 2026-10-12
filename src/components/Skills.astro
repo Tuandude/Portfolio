@@ -1,0 +1,63 @@
+---
+import type { Locale } from '../types';
+import { getProfile } from '../data/profile';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const profile = getProfile(lang);
+---
+
+<section id="skills" class="scroll-mt-16 sm:scroll-mt-20 border-b border-hairline py-16 sm:py-24">
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8">
+    <!-- Section Header Tag as valid h2 -->
+    <div class="reveal-item flex items-center justify-between border-b border-hairline pb-4 mb-12">
+      <h2 class="text-xs font-mono uppercase tracking-widest text-ink-muted m-0 font-normal">
+        <span class="text-accent-text font-bold">[03]</span> — {profile.ui.skills.sectionTag.replace(/^\[03\]\s*—\s*/, '')}
+      </h2>
+      <div class="text-[11px] font-mono text-ink-muted/80 hidden sm:block">
+        {profile.ui.skills.secSub}
+      </div>
+    </div>
+
+    <!-- 4 Skills Groups in Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+      {profile.skills.map((skillGroup, index) => (
+        <div class="reveal-item border border-hairline bg-card p-6 sm:p-7 rounded-xs flex flex-col justify-between hover:border-hairline-strong transition-colors">
+          <div>
+            <!-- Group header tag -->
+            <div class="flex items-center justify-between text-xs font-mono pb-3 border-b border-hairline/70 mb-4">
+              <span class="text-accent-text font-semibold">SKILL_0{index + 1}</span>
+              <span class="text-ink-muted uppercase text-[11px]">{skillGroup.category}</span>
+            </div>
+
+            <!-- Title & Description (h3) -->
+            <h3 class="text-xl font-bold text-ink mb-2 tracking-tight m-0">
+              {skillGroup.name}
+            </h3>
+            <p class="text-sm text-ink-muted leading-relaxed font-sans mb-6 mt-2">
+              {skillGroup.description}
+            </p>
+          </div>
+
+          <!-- Tool chips -->
+          <div class="pt-4 border-t border-hairline/60">
+            <div class="text-[11px] font-mono uppercase tracking-wider text-ink-muted mb-2.5">
+              {profile.ui.skills.toolsLabel}
+            </div>
+            <div class="flex flex-wrap gap-2">
+              {skillGroup.tools.map((tool) => (
+                <span class="px-2.5 py-1 text-xs font-mono rounded-xs bg-paper text-ink border border-hairline flex items-center gap-1.5">
+                  <span class="w-1 h-1 rounded-full bg-accent"></span>
+                  <span>{tool}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

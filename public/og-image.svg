@@ -1,50 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0A0A0A" />
-      <stop offset="100%" stop-color="#141414" />
-    </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#89AACC" />
-      <stop offset="100%" stop-color="#4E85BF" />
-    </linearGradient>
-    <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#8A8A8A" />
-    </linearGradient>
+    <pattern id="dot-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#141414" fill-opacity="0.08" />
+    </pattern>
   </defs>
 
-  <rect width="1200" height="630" fill="url(#bg)" />
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#F4F1EA" />
+  <rect width="1200" height="630" fill="url(#dot-grid)" />
 
-  <!-- Subtle grid lines -->
-  <g stroke="#1F1F1F" stroke-width="1" opacity="0.6">
-    <line x1="100" y1="0" x2="100" y2="630" />
-    <line x1="1100" y1="0" x2="1100" y2="630" />
-    <line x1="0" y1="100" x2="1200" y2="100" />
-    <line x1="0" y1="530" x2="1200" y2="530" />
-  </g>
+  <!-- Outer Swiss Hairline Border -->
+  <rect x="32" y="32" width="1136" height="566" fill="none" stroke="#DCD7CD" stroke-width="1.5" />
 
-  <!-- Glowing background orb -->
-  <circle cx="950" cy="200" r="300" fill="#89AACC" opacity="0.08" filter="blur(60px)" />
-  <circle cx="250" cy="450" r="250" fill="#4E85BF" opacity="0.06" filter="blur(60px)" />
-
-  <!-- Badge -->
-  <g transform="translate(140, 160)">
-    <rect width="320" height="36" rx="18" fill="#141414" stroke="#1F1F1F" stroke-width="1" />
-    <circle cx="20" cy="18" r="4" fill="#34D399" />
-    <text x="36" y="23" fill="#8A8A8A" font-family="monospace" font-size="12" letter-spacing="2">AVAILABLE FOR OPPORTUNITIES</text>
-  </g>
-
-  <!-- Name -->
-  <text x="140" y="320" fill="url(#textGrad)" font-family="serif" font-style="italic" font-size="110" font-weight="bold" letter-spacing="-2">Tuan Dang</text>
-
-  <!-- Tagline -->
-  <text x="140" y="390" fill="#8A8A8A" font-family="sans-serif" font-size="32" font-weight="300">
-    AI Student <tspan fill="url(#accent)">·</tspan> Vibe Coder <tspan fill="url(#accent)">·</tspan> Builder
+  <!-- Top metadata bar -->
+  <line x1="32" y1="96" x2="1168" y2="96" stroke="#DCD7CD" stroke-width="1.5" />
+  <text x="64" y="72" font-family="'Courier New', monospace" font-size="14" fill="#58554F" letter-spacing="2">
+    TUAN DANG // RESEARCH NOTEBOOK &amp; PORTFOLIO
+  </text>
+  <text x="1040" y="72" font-family="'Courier New', monospace" font-size="14" fill="#BA3600" font-weight="bold" letter-spacing="1">
+    [SYS_REV: 2026]
   </text>
 
-  <!-- Location & Footer -->
-  <text x="140" y="490" fill="#757575" font-family="monospace" font-size="16" letter-spacing="1">
-    // Ho Chi Minh City, Vietnam — https://tuandang.dev
+  <!-- Monogram Box -->
+  <rect x="64" y="140" width="72" height="72" rx="4" fill="#141414" />
+  <rect x="66" y="142" width="68" height="68" rx="3" fill="none" stroke="#333333" stroke-width="1" />
+  <text x="80" y="186" font-family="'Courier New', monospace" font-size="32" font-weight="bold" fill="#F4F1EA">TD</text>
+  <circle cx="120" cy="196" r="5" fill="#FF4F00" />
+
+  <!-- Main Headline -->
+  <text x="64" y="270" font-family="'Space Grotesk', -apple-system, sans-serif" font-size="20" font-weight="bold" fill="#58554F" letter-spacing="2">
+    ĐẶNG VĂN BẢO TUẤN · TUAN DANG
+  </text>
+  <text x="64" y="360" font-family="'Space Grotesk', -apple-system, sans-serif" font-size="64" font-weight="bold" fill="#141414" letter-spacing="-1">
+    AI Student · Vibe Coder · Builder
+  </text>
+
+  <!-- Tagline / Bio summary -->
+  <text x="64" y="420" font-family="'Space Grotesk', -apple-system, sans-serif" font-size="24" fill="#58554F">
+    Machine Learning · Deep Learning · Computer Vision · Modern Web
+  </text>
+
+  <!-- Bottom Details Bar -->
+  <line x1="32" y1="520" x2="1168" y2="520" stroke="#DCD7CD" stroke-width="1.5" />
+  <circle cx="70" cy="558" r="4" fill="#FF4F00" />
+  <text x="86" y="563" font-family="'Courier New', monospace" font-size="15" fill="#141414">
+    AVAILABLE FOR INTERNSHIP · DA NANG, VIETNAM
+  </text>
+  <text x="960" y="563" font-family="'Courier New', monospace" font-size="15" fill="#58554F">
+    tuandang.dev
   </text>
 </svg>

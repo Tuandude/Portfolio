@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="404 — Không tìm thấy trang / Page Not Found | Tuan Dang"
+  description="Trang bạn đang tìm kiếm không tồn tại hoặc đã được thay đổi đường dẫn / The requested page was not found."
+  canonical={null}
+  noindex={true}
+  lang="vi"
+>
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 py-24 sm:py-32 flex flex-col items-center text-center justify-center">
+    <div class="reveal-item max-w-xl flex flex-col items-center gap-6">
+      <!-- Status Code Tag -->
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono border border-accent/40 bg-card text-ink">
+        <span class="w-2 h-2 rounded-full bg-accent"></span>
+        <span>ERROR_CODE: 404 // NULL_REFERENCE</span>
+      </div>
+
+      <!-- Large 404 Display -->
+      <h1 class="text-6xl sm:text-8xl font-bold font-mono text-ink tracking-tighter m-0">
+        404
+      </h1>
+
+      <div class="space-y-3">
+        <p class="text-xl sm:text-2xl font-bold text-ink m-0">
+          Không tìm thấy trang / Page Not Found
+        </p>
+        <p class="text-sm sm:text-base text-ink-muted leading-relaxed font-sans m-0">
+          Trang bạn tìm kiếm không tồn tại trong tài liệu nghiên cứu hoặc đã được di dời sang địa chỉ khác.
+        </p>
+        <p class="text-xs sm:text-sm text-ink-muted/80 leading-relaxed font-mono m-0">
+          The requested experiment does not exist in this research notebook or has been moved.
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
+        <a
+          href="/"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xs bg-ink text-paper text-xs font-mono uppercase tracking-wider hover:bg-accent transition-colors focus-visible:outline-accent"
+        >
+          <span>← Trang chủ (VI)</span>
+        </a>
+        <a
+          href="/en/"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xs border border-hairline-strong bg-card text-ink text-xs font-mono uppercase tracking-wider hover:border-accent hover:text-accent transition-colors focus-visible:outline-accent"
+        >
+          <span>← Homepage (EN)</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

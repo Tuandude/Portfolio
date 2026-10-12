@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource/jetbrains-mono";
+
+@theme {
+  --font-sans: 'Space Grotesk Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-paper: var(--theme-paper);
+  --color-card: var(--theme-card);
+  --color-ink: var(--theme-ink);
+  --color-ink-muted: var(--theme-ink-muted);
+  --color-hairline: var(--theme-hairline);
+  --color-hairline-strong: var(--theme-hairline-strong);
+  --color-accent: var(--theme-accent);
+  --color-accent-text: var(--theme-accent-text);
+  --color-accent-subtle: var(--theme-accent-subtle);
+  --color-dot: var(--theme-dot);
+}
+
+:root {
+  --theme-paper: #F4F1EA;
+  --theme-card: #FAF8F4;
+  --theme-ink: #141414;
+  --theme-ink-muted: #58554F;
+  --theme-hairline: #DCD7CD;
+  --theme-hairline-strong: #BCB6A9;
+  --theme-accent: #FF4F00;
+  --theme-accent-text: #BA3600;
+  --theme-accent-subtle: rgba(255, 79, 0, 0.08);
+  --theme-dot: rgba(20, 20, 20, 0.05);
+  color-scheme: light;
+}
+
+html.dark,
+html[data-theme="dark"] {
+  --theme-paper: #121211;
+  --theme-card: #1A1A18;
+  --theme-ink: #F4F1EA;
+  --theme-ink-muted: #A8A49C;
+  --theme-hairline: #2B2A27;
+  --theme-hairline-strong: #3F3E3A;
+  --theme-accent: #FF5500;
+  --theme-accent-text: #FF7536;
+  --theme-accent-subtle: rgba(255, 85, 0, 0.14);
+  --theme-dot: rgba(244, 241, 234, 0.05);
+  color-scheme: dark;
+}
+
+/* Base resets & typography */
+html {
+  background-color: var(--theme-paper);
+  color: var(--theme-ink);
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--theme-paper);
+  color: var(--theme-ink);
+  overflow-x: clip;
+}
+
+/* Accent Selection */
+::selection {
+  background-color: var(--theme-accent);
+  color: #FFFFFF;
+}
+
+/* Focus Visible Accessible Outlines */
+:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 3px;
+}
+
+/* Graph paper background */
+.bg-graph-grid {
+  background-image: radial-gradient(var(--theme-dot) 1.25px, transparent 1.25px);
+  background-size: 24px 24px;
+}
+
+/* Hairline borders */
+.border-hairline {
+  border-color: var(--theme-hairline);
+}
+
+.border-hairline-strong {
+  border-color: var(--theme-hairline-strong);
+}
+
+/* Underline link animation */
+.hover-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+.hover-underline::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--theme-accent);
+  transform-origin: bottom right;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-underline:hover::after,
+.hover-underline:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
+
+/* Reveal on scroll progressive enhancement */
+html.has-reveal .reveal-item {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+html.has-reveal .reveal-item.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  html.has-reveal .reveal-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+@media print {
+  html.has-reveal .reveal-item {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

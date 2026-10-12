@@ -1,0 +1,38 @@
+---
+import type { Locale } from '../types';
+import { getProfile } from '../data/profile';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const profile = getProfile(lang);
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="py-12 border-t border-hairline bg-paper text-ink-muted text-xs font-mono">
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <!-- Copyright & Author -->
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-accent inline-block"></span>
+      <span>© {currentYear} {profile.name} ({profile.displayName})</span>
+    </div>
+
+    <!-- Tech colophon & Back to top -->
+    <div class="flex items-center gap-6">
+      <span class="text-ink-muted/80">
+        {profile.ui.footer.builtWith} <a href="https://astro.build" target="_blank" rel="noopener noreferrer" class="text-ink hover:text-accent underline underline-offset-4 decoration-hairline transition-colors">Astro</a>
+      </span>
+      <span class="h-3 w-px bg-hairline hidden sm:inline-block"></span>
+      <a
+        href="#main-content"
+        class="inline-flex items-center gap-1.5 text-ink hover:text-accent hover-underline transition-colors focus-visible:outline-accent"
+        aria-label={profile.ui.footer.backToTop}
+      >
+        <span>{profile.ui.footer.backToTop}</span>
+        <span aria-hidden="true">↑</span>
+      </a>
+    </div>
+  </div>
+</footer>
