@@ -6,6 +6,7 @@ import type { Habit } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { BrutalCheckbox } from '../ui/BrutalCheckbox';
+import { RetroHabitIcon } from '../ui/RetroHabitIcon';
 import { CameraModal } from './CameraModal';
 import { SoundService } from '../../services/sound';
 
@@ -94,8 +95,10 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                 size="md"
               />
               <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xl drop-shadow-[1px_1px_0px_#18181B]">{habit.icon}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-white brutal-border brutal-shadow-sm flex items-center justify-center p-1">
+                    <RetroHabitIcon name={habit.icon} size={26} />
+                  </div>
                   <span
                     className={`font-black text-sm text-[#18181B] uppercase tracking-tight ${
                       habit.completedToday ? 'line-through opacity-70' : ''
@@ -183,16 +186,24 @@ export const TasksTab: React.FC<TasksTabProps> = ({
               />
 
               <div className="flex gap-2">
-                {['💧', '📖', '🏃', '🧘', '🥗', '💻'].map((emoji) => (
+                {[
+                  { key: 'water', label: '💧 Nước' },
+                  { key: 'book', label: '📖 Sách' },
+                  { key: 'run', label: '🏃 Chạy' },
+                  { key: 'meditate', label: '🧘 Thiền' },
+                  { key: 'salad', label: '🥗 Healthy' },
+                  { key: 'code', label: '💻 Code' },
+                ].map((item) => (
                   <button
-                    key={emoji}
+                    key={item.key}
                     type="button"
-                    onClick={() => setNewIcon(emoji)}
-                    className={`w-9 h-9 rounded-xl brutal-border text-lg flex items-center justify-center cursor-pointer ${
-                      newIcon === emoji ? 'bg-[#FFD166] brutal-shadow-sm' : 'bg-white'
+                    onClick={() => setNewIcon(item.key)}
+                    className={`w-10 h-10 rounded-xl brutal-border flex items-center justify-center cursor-pointer transition-transform ${
+                      newIcon === item.key ? 'bg-[#FFD166] brutal-shadow-sm scale-105' : 'bg-white hover:bg-gray-100'
                     }`}
+                    title={item.label}
                   >
-                    {emoji}
+                    <RetroHabitIcon name={item.key} size={22} />
                   </button>
                 ))}
               </div>
