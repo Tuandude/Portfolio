@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --bg-paper: #FDFBF7;
+  --border-dark: #18181B;
+  --comic-pink: #FF6B8B;
+  --comic-yellow: #FFD166;
+  --comic-blue: #3A86FF;
+  --comic-green: #52B788;
+  --comic-purple: #9B5DE5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #FDFBF7;
+  color: #18181B;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Neo-Brutalism Shadows and Utilities */
+.brutal-border {
+  border: 2.5px solid #18181B;
+}
+
+.brutal-border-3 {
+  border: 3px solid #18181B;
+}
+
+.brutal-shadow-sm {
+  box-shadow: 2px 2px 0px 0px #18181B;
+}
+
+.brutal-shadow {
+  box-shadow: 4px 4px 0px 0px #18181B;
+}
+
+.brutal-shadow-lg {
+  box-shadow: 6px 6px 0px 0px #18181B;
+}
+
+.brutal-btn {
+  border: 2.5px solid #18181B;
+  box-shadow: 4px 4px 0px 0px #18181B;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.brutal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 5px 5px 0px 0px #18181B;
+}
+
+.brutal-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #18181B;
+}
+
+.brutal-card {
+  border: 2.5px solid #18181B;
+  box-shadow: 4px 4px 0px 0px #18181B;
+  background-color: #FFFFFF;
+}
+
+.squircle {
+  border-radius: 28px;
+}
