@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Flame, ShoppingBag, Snowflake, Zap, CheckCircle2 } from 'lucide-react';
 import type { UserProfile, Habit } from '../../types';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 
 interface StreakTabProps {
@@ -30,38 +29,47 @@ export const StreakTab: React.FC<StreakTabProps> = ({
 
   return (
     <div className="flex flex-col gap-4 pb-20">
-      {/* Flame Widget */}
-      <div className="bg-gradient-to-br from-[#FF6B8B] to-[#FFD166] rounded-[32px] brutal-border brutal-shadow-lg p-6 text-white text-center flex flex-col items-center relative overflow-hidden">
-        <div className="absolute top-3 right-3">
-          <Badge variant="dark">🔥 Chuỗi Kỷ Lục: {profile.bestStreak}N</Badge>
+      {/* Flame Widget with Halftone Retro Comic Glow */}
+      <div className="bg-[#FF6B8B] rounded-[32px] brutal-border-3 brutal-shadow-lg p-6 text-white text-center flex flex-col items-center relative overflow-hidden">
+        {/* Halftone Dot Pattern */}
+        <div
+          className="absolute inset-0 opacity-15 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(#18181B 2px, transparent 2px)',
+            backgroundSize: '10px 10px',
+          }}
+        />
+
+        <div className="absolute top-3 right-3 z-10">
+          <Badge variant="dark">🔥 RECORD: {profile.bestStreak} DAYS</Badge>
         </div>
 
-        <div className="relative my-2">
-          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm brutal-border shadow-inner">
-            <Flame size={54} fill="#FFD166" stroke="#18181B" strokeWidth={2.5} className="animate-pulse" />
+        <div className="relative my-2 z-10">
+          <div className="w-24 h-24 bg-[#FFD166] rounded-full flex items-center justify-center brutal-border-3 brutal-shadow">
+            <Flame size={56} fill="#FF5400" stroke="#18181B" strokeWidth={3} className="animate-pulse" />
           </div>
         </div>
 
-        <h1 className="text-4xl font-black text-[#18181B] drop-shadow-sm mt-1">
-          {profile.currentStreak} Ngày Liên Tiếp
+        <h1 className="text-3xl font-black text-[#18181B] bg-white px-4 py-1 rounded-xl brutal-border brutal-shadow-sm mt-1 uppercase tracking-tight z-10">
+          {profile.currentStreak} NGÀY LIÊN TIẾP
         </h1>
-        <p className="text-xs font-bold text-[#18181B]/80 max-w-xs mt-1">
-          Tuyệt vời! Bạn đang duy trì phong độ cực kỳ ổn định.
+        <p className="text-xs font-black text-[#18181B] bg-[#FFD166] px-3 py-1 rounded-lg brutal-border mt-2 z-10 uppercase tracking-wide">
+          ⚡ NĂNG LƯỢNG RỰC CHÁY - BẢO TOÀN LOCKET!
         </p>
 
-        {/* 7-day mini calendar */}
-        <div className="flex justify-between w-full max-w-xs mt-5 bg-white/40 p-2.5 rounded-2xl brutal-border">
+        {/* 7-day mini calendar - Retro Comic Style */}
+        <div className="flex justify-between w-full max-w-xs mt-5 bg-white p-3 rounded-2xl brutal-border-3 brutal-shadow z-10">
           {daysOfWeek.map((day, idx) => {
             const isCompleted = idx <= todayIndex;
             return (
-              <div key={day} className="flex flex-col items-center gap-1">
-                <span className="text-[11px] font-black text-[#18181B]">{day}</span>
+              <div key={day} className="flex flex-col items-center gap-1.5">
+                <span className="text-[10px] font-black text-[#18181B] uppercase">{day}</span>
                 <div
-                  className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs brutal-border ${
-                    isCompleted ? 'bg-[#52B788] text-white brutal-shadow-sm' : 'bg-white/70 text-gray-400'
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs brutal-border ${
+                    isCompleted ? 'bg-[#52B788] text-white brutal-shadow-sm' : 'bg-gray-100 text-gray-400'
                   }`}
                 >
-                  {isCompleted ? <CheckCircle2 size={14} strokeWidth={3} /> : '·'}
+                  {isCompleted ? <CheckCircle2 size={15} strokeWidth={3.5} /> : '·'}
                 </div>
               </div>
             );
@@ -71,43 +79,59 @@ export const StreakTab: React.FC<StreakTabProps> = ({
 
       {/* XP Wallet & Freeze inventory */}
       <div className="grid grid-cols-2 gap-3">
-        <Card variant="yellow">
-          <div className="flex items-center gap-2">
-            <Zap size={20} className="text-[#18181B]" />
-            <span className="text-xs font-black uppercase text-[#18181B]">Ví Điểm XP</span>
+        <div className="bg-[#FFD166] rounded-3xl brutal-border-3 brutal-shadow p-4 relative overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-10 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(#18181B 2px, transparent 2px)',
+              backgroundSize: '8px 8px',
+            }}
+          />
+          <div className="flex items-center gap-1.5 relative z-10">
+            <Zap size={18} fill="#18181B" className="text-[#18181B]" />
+            <span className="text-[11px] font-black uppercase text-[#18181B] tracking-wider">VÍ ĐIỂM XP</span>
           </div>
-          <div className="text-2xl font-black text-[#18181B] mt-1">{profile.xp} XP</div>
-          <p className="text-[10px] font-bold text-gray-600 mt-1">Hoàn thành task để kiếm thêm XP</p>
-        </Card>
+          <div className="text-3xl font-black text-[#18181B] mt-2 relative z-10">{profile.xp} XP</div>
+          <p className="text-[10px] font-bold text-[#18181B]/80 mt-1 relative z-10">+15 XP mỗi check-in locket</p>
+        </div>
 
-        <Card variant="blue">
-          <div className="flex items-center gap-2">
-            <Snowflake size={20} className="text-[#3A86FF]" />
-            <span className="text-xs font-black uppercase text-[#18181B]">Khiên Băng</span>
+        <div className="bg-[#3A86FF] rounded-3xl brutal-border-3 brutal-shadow p-4 text-white relative overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-15 pointer-events-none"
+            style={{
+              backgroundImage: 'radial-gradient(#FFF 2px, transparent 2px)',
+              backgroundSize: '8px 8px',
+            }}
+          />
+          <div className="flex items-center gap-1.5 relative z-10">
+            <Snowflake size={18} className="text-white" strokeWidth={3} />
+            <span className="text-[11px] font-black uppercase text-white tracking-wider">KHIÊN BĂNG</span>
           </div>
-          <div className="text-2xl font-black text-[#18181B] mt-1">{profile.streakFreezeCount} Băng</div>
-          <p className="text-[10px] font-bold text-gray-600 mt-1">Tự động cứu streak khi quên làm</p>
-        </Card>
+          <div className="text-3xl font-black text-white mt-2 drop-shadow-[2px_2px_0px_#18181B] relative z-10">
+            {profile.streakFreezeCount} BĂNG
+          </div>
+          <p className="text-[10px] font-bold text-white/90 mt-1 relative z-10">Bảo vệ chuỗi khi quên task</p>
+        </div>
       </div>
 
       {/* Freeze Store */}
-      <Card variant="white">
+      <div className="bg-white rounded-3xl brutal-border-3 brutal-shadow p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShoppingBag size={20} className="text-[#18181B]" />
-            <h3 className="font-black text-sm text-[#18181B]">Cửa Hàng Cứu Chuỗi ❄️</h3>
+            <ShoppingBag size={20} strokeWidth={2.5} className="text-[#18181B]" />
+            <h3 className="font-black text-sm text-[#18181B] uppercase tracking-wide">Cửa Hàng Cứu Chuỗi ❄️</h3>
           </div>
-          <Badge variant="pink">Hot Deal</Badge>
+          <Badge variant="pink">HOT DEAL</Badge>
         </div>
 
-        <div className="flex items-center justify-between mt-3 p-3 bg-[#E0E7FF] rounded-2xl brutal-border">
+        <div className="flex items-center justify-between mt-3 p-3 bg-[#FFE5D9] rounded-2xl brutal-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white brutal-border flex items-center justify-center">
-              <Snowflake size={22} className="text-blue-500" />
+            <div className="w-11 h-11 rounded-2xl bg-white brutal-border brutal-shadow-sm flex items-center justify-center">
+              <Snowflake size={24} className="text-[#3A86FF]" strokeWidth={2.5} />
             </div>
             <div>
-              <div className="font-black text-xs text-[#18181B]">1x Streak Freeze</div>
-              <div className="text-[11px] font-bold text-gray-600">Bảo vệ ngọn lửa trong 24h</div>
+              <div className="font-black text-xs text-[#18181B] uppercase">1x Streak Freeze</div>
+              <div className="text-[10px] font-bold text-gray-600">Đóng băng bảo vệ streak 24h</div>
             </div>
           </div>
 
@@ -122,11 +146,11 @@ export const StreakTab: React.FC<StreakTabProps> = ({
         </div>
 
         {purchaseSuccess && (
-          <p className="text-xs font-bold text-green-600 text-center mt-2">
+          <p className="text-xs font-black text-green-700 bg-[#D8F3DC] brutal-border rounded-xl p-2 text-center mt-3">
             🎉 Đã mua Streak Freeze thành công!
           </p>
         )}
-      </Card>
+      </div>
     </div>
   );
 };

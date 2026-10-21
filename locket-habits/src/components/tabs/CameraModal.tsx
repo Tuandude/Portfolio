@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, X, Upload, Video, RefreshCw, Zap, Sparkles, Wand2, Trash2 } from 'lucide-react';
+import { Camera, X, Upload, Video, RefreshCw, Zap, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { SoundService } from '../../services/sound';
 
@@ -349,15 +349,16 @@ export const CameraModal: React.FC<CameraModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-md">
-      <div className="bg-[#FDFBF7] brutal-border-3 brutal-shadow-lg rounded-[32px] p-4 w-full max-w-sm flex flex-col gap-3 relative max-h-[95vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="font-black text-lg text-[#18181B] flex items-center gap-1.5">
-              Locket Studio Cam <Wand2 size={16} className="text-[#FF6B8B]" />
-            </h3>
-            <p className="text-xs font-bold text-gray-500">{habitTitle}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
+      {/* Fullscreen Locket Viewfinder View */}
+      <div className="bg-[#18181B] brutal-border-3 brutal-shadow-lg rounded-[36px] w-full max-w-sm flex flex-col overflow-hidden relative shadow-2xl">
+        {/* Top Floating Comic App Header */}
+        <div className="absolute top-4 inset-x-4 flex justify-between items-center z-30 pointer-events-none">
+          <div className="flex items-center gap-2 bg-[#FDFBF7] px-3 py-1 rounded-full brutal-border brutal-shadow-sm pointer-events-auto">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="font-black text-xs text-[#18181B] tracking-wide uppercase">
+              {habitTitle}
+            </span>
           </div>
           <button
             onClick={() => {
@@ -365,20 +366,29 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               stopLiveCamera();
               onClose();
             }}
-            className="w-8 h-8 rounded-full brutal-border bg-white flex items-center justify-center font-bold hover:bg-gray-100 cursor-pointer"
+            className="w-10 h-10 rounded-full brutal-border bg-[#FDFBF7] text-[#18181B] flex items-center justify-center font-black hover:bg-gray-100 cursor-pointer pointer-events-auto brutal-shadow-sm active:scale-95 transition-transform"
           >
-            <X size={18} />
+            <X size={20} strokeWidth={3} />
           </button>
         </div>
 
-        {/* Viewfinder Preview Box */}
+        {/* Viewfinder Main Stage (1:1 Aspect Ratio) */}
         <div
           ref={previewContainerRef}
-          className="relative aspect-square w-full rounded-[28px] brutal-border-3 bg-black/90 overflow-hidden flex flex-col items-center justify-center select-none"
+          className="relative aspect-square w-full bg-black overflow-hidden flex flex-col items-center justify-center select-none"
         >
+          {/* Comic Halftone Overlay Background for Camera View */}
+          <div
+            className="absolute inset-0 pointer-events-none opacity-10 z-10"
+            style={{
+              backgroundImage: 'radial-gradient(#FFF 2px, transparent 2px)',
+              backgroundSize: '12px 12px',
+            }}
+          />
+
           {/* Flash animation */}
           {flashEffect && (
-            <div className="absolute inset-0 bg-white z-40 pointer-events-none animate-ping" />
+            <div className="absolute inset-0 bg-white z-50 pointer-events-none animate-ping" />
           )}
 
           {/* Captured Preview Mode with Stickers and Filters */}
@@ -394,10 +404,10 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               {/* Halftone Dot Overlay CSS if selected */}
               {activeFilter === 'halftone' && (
                 <div
-                  className="absolute inset-0 pointer-events-none opacity-20"
+                  className="absolute inset-0 pointer-events-none opacity-25"
                   style={{
-                    backgroundImage: 'radial-gradient(#000 2px, transparent 2px)',
-                    backgroundSize: '8px 8px',
+                    backgroundImage: 'radial-gradient(#000 2.5px, transparent 2.5px)',
+                    backgroundSize: '10px 10px',
                   }}
                 />
               )}
@@ -419,8 +429,8 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                       backgroundColor: stk.bg || '#FFD166',
                       color: stk.textColor || '#18181B',
                     }}
-                    className={`absolute z-30 px-3 py-1 rounded-xl brutal-border font-black text-xs select-none cursor-pointer flex items-center gap-1 brutal-shadow-sm active:scale-95 transition-transform ${
-                      isSelected ? 'ring-2 ring-[#3A86FF]' : ''
+                    className={`absolute z-30 px-3.5 py-1.5 rounded-xl brutal-border font-black text-xs select-none cursor-pointer flex items-center gap-1.5 brutal-shadow-sm active:scale-95 transition-transform ${
+                      isSelected ? 'ring-3 ring-[#3A86FF]' : ''
                     }`}
                   >
                     <span>{stk.label}</span>
@@ -431,7 +441,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                           e.stopPropagation();
                           removeSticker(stk.id);
                         }}
-                        className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center ml-1 text-[10px]"
+                        className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center ml-1 text-[10px] font-black"
                       >
                         ×
                       </button>
@@ -440,27 +450,16 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                 );
               })}
 
-              {/* Bottom Watermark Overlay */}
-              <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-xs text-white px-3 py-1.5 flex justify-between items-center text-xs font-black z-20 pointer-events-none">
-                <span>⚡ {habitTitle}</span>
-                <span className="text-[#FFD166] text-[10px]">LOCKET STAMP</span>
+              {/* Bottom Locket Timestamp Watermark */}
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white px-4 py-3 flex justify-between items-end text-xs font-black z-20 pointer-events-none">
+                <span className="drop-shadow-[1px_1px_0px_#18181B]">⚡ {habitTitle}</span>
+                <span className="text-[#FFD166] text-[10px] font-black tracking-wider uppercase drop-shadow-[1px_1px_0px_#18181B]">
+                  LOCKET V2.0
+                </span>
               </div>
-
-              {/* Retake Camera Button */}
-              <button
-                onClick={() => {
-                  SoundService.playClick();
-                  setStickers([]);
-                  setActiveFilter('normal');
-                  startLiveCamera(facingMode);
-                }}
-                className="absolute top-3 right-3 px-3 py-1 bg-white brutal-border rounded-xl font-black text-xs brutal-shadow-sm cursor-pointer z-30 hover:bg-gray-100"
-              >
-                Chụp Lại 🔄
-              </button>
             </div>
           ) : isLiveActive ? (
-            /* Live Stream Video */
+            /* Live Stream Video Viewfinder */
             <div className="relative w-full h-full">
               <video
                 ref={videoRef}
@@ -470,52 +469,42 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                 className={`w-full h-full object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
               />
 
-              {/* Shutter Button & Controls overlay */}
-              <div className="absolute bottom-4 inset-x-0 flex items-center justify-center gap-6 z-20">
-                <button
-                  type="button"
-                  onClick={toggleCameraFacing}
-                  className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md brutal-border flex items-center justify-center cursor-pointer hover:bg-white active:scale-90"
-                  title="Đổi camera trước/sau"
-                >
-                  <RefreshCw size={18} />
-                </button>
-
-                {/* Big Mechanical Shutter Trigger */}
-                <button
-                  type="button"
-                  onClick={takeSnapshot}
-                  className="w-16 h-16 rounded-full bg-white brutal-border-3 brutal-shadow flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-transform"
-                >
-                  <div className="w-12 h-12 rounded-full bg-[#FF6B8B] brutal-border" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-10 h-10 rounded-full bg-white/80 backdrop-blur-md brutal-border flex items-center justify-center cursor-pointer hover:bg-white active:scale-90"
-                  title="Chọn ảnh từ máy"
-                >
-                  <Upload size={18} />
-                </button>
+              {/* Comic Viewfinder Corner Focus Crosshairs */}
+              <div className="absolute inset-8 pointer-events-none border-2 border-white/30 rounded-2xl flex flex-col justify-between p-2">
+                <div className="flex justify-between">
+                  <span className="w-3 h-3 border-t-2 border-l-2 border-[#FFD166]" />
+                  <span className="w-3 h-3 border-t-2 border-r-2 border-[#FFD166]" />
+                </div>
+                <div className="flex justify-between">
+                  <span className="w-3 h-3 border-b-2 border-l-2 border-[#FFD166]" />
+                  <span className="w-3 h-3 border-b-2 border-r-2 border-[#FFD166]" />
+                </div>
               </div>
             </div>
           ) : (
-            /* Fallback when webcam permission denied or unavailable */
-            <div className="flex flex-col items-center gap-2 text-gray-300 p-4 text-center">
-              <Camera size={44} className="text-[#FFD166]" />
-              <span className="text-xs font-bold">
-                {hasCameraPermission === false
-                  ? 'Không truy cập được Webcam'
-                  : 'Đang mở ống ngắm...'}
-              </span>
+            /* Fallback or Camera initializing */
+            <div className="flex flex-col items-center gap-3 text-white p-6 text-center">
+              <div className="w-16 h-16 rounded-3xl bg-[#FFD166] text-[#18181B] brutal-border flex items-center justify-center brutal-shadow">
+                <Camera size={32} strokeWidth={2.5} />
+              </div>
+              <div>
+                <p className="text-sm font-black text-white">
+                  {hasCameraPermission === false
+                    ? 'Không có quyền truy cập Camera'
+                    : 'Đang mở ống ngắm Live Cam...'}
+                </p>
+                <p className="text-[11px] font-bold text-gray-400 mt-0.5">
+                  Bạn có thể chọn ảnh mẫu hoặc tải ảnh có sẵn từ máy
+                </p>
+              </div>
+
               <div className="flex flex-wrap gap-2 mt-2 justify-center">
                 <Button
                   size="sm"
                   variant="yellow"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload size={14} className="mr-1" /> Tải ảnh lên
+                  <Upload size={14} className="mr-1" /> Tải từ máy
                 </Button>
                 <Button
                   size="sm"
@@ -526,14 +515,14 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                     setIsEditorMode(true);
                   }}
                 >
-                  Ảnh mẫu
+                  Dùng ảnh mẫu
                 </Button>
                 <Button
                   size="sm"
                   variant="pink"
                   onClick={() => startLiveCamera(facingMode)}
                 >
-                  <Video size={14} className="mr-1" /> Mở lại Cam
+                  <Video size={14} className="mr-1" /> Thử lại Cam
                 </Button>
               </div>
             </div>
@@ -548,101 +537,161 @@ export const CameraModal: React.FC<CameraModalProps> = ({
           />
         </div>
 
-        {/* PHOTO EDITOR CONTROLS (Only visible after photo is captured) */}
-        {previewUrl && (
-          <div className="flex flex-col gap-2.5 bg-white p-3 rounded-2xl brutal-border brutal-shadow-sm">
-            {/* Filter Selector */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[11px] font-black uppercase text-[#18181B] flex items-center gap-1">
-                  <Sparkles size={12} className="text-[#FF6B8B]" /> Bộ Lọc Retro
-                </span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase">{activeFilter}</span>
+        {/* BOTTOM CONTROLS DECK */}
+        <div className="bg-[#FDFBF7] p-4 flex flex-col gap-3">
+          {previewUrl ? (
+            /* EDIT & SUBMIT CONTROLS */
+            <div className="flex flex-col gap-3">
+              {/* Filter Selector Strip */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[11px] font-black uppercase text-[#18181B] flex items-center gap-1">
+                    <Sparkles size={12} className="text-[#FF6B8B]" /> Bộ Lọc Retro Comic
+                  </span>
+                  <span className="text-[10px] font-black text-gray-500 uppercase">{activeFilter}</span>
+                </div>
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                  {(['normal', 'halftone', 'comic-bw', 'y2k', 'cyber'] as PhotoFilter[]).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => {
+                        SoundService.playClick();
+                        setActiveFilter(f);
+                      }}
+                      className={`px-3 py-1 rounded-xl text-[11px] font-black whitespace-nowrap brutal-border transition-all cursor-pointer ${
+                        activeFilter === f
+                          ? 'bg-[#FFD166] brutal-shadow-sm text-[#18181B]'
+                          : 'bg-white text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {f === 'normal' && 'Gốc 📸'}
+                      {f === 'halftone' && 'Halftone 🟡'}
+                      {f === 'comic-bw' && 'Comic B&W 🖤'}
+                      {f === 'y2k' && 'Y2K Cam 🌸'}
+                      {f === 'cyber' && 'Cyber ⚡'}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-1.5 overflow-x-auto pb-1">
-                {(['normal', 'halftone', 'comic-bw', 'y2k', 'cyber'] as PhotoFilter[]).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => {
-                      SoundService.playClick();
-                      setActiveFilter(f);
-                    }}
-                    className={`px-2.5 py-1 rounded-xl text-[11px] font-black whitespace-nowrap brutal-border transition-all cursor-pointer ${
-                      activeFilter === f
-                        ? 'bg-[#FFD166] brutal-shadow-sm text-[#18181B]'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {f === 'normal' && 'Gốc 📸'}
-                    {f === 'halftone' && 'Halftone 🟡'}
-                    {f === 'comic-bw' && 'Comic B&W 🖤'}
-                    {f === 'y2k' && 'Y2K Cam 🌸'}
-                    {f === 'cyber' && 'Cyber ⚡'}
-                  </button>
-                ))}
+
+              {/* Sticker Selector Strip */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[11px] font-black uppercase text-[#18181B] flex items-center gap-1">
+                    <Zap size={12} className="text-[#3A86FF]" /> Dán Sticker Comic ({stickers.length})
+                  </span>
+                  {stickers.length > 0 && (
+                    <button
+                      onClick={() => {
+                        SoundService.playClick();
+                        setStickers([]);
+                        setSelectedStickerId(null);
+                      }}
+                      className="text-[10px] font-black text-red-500 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      <Trash2 size={10} /> Xóa hết
+                    </button>
+                  )}
+                </div>
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                  {STICKER_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => addSticker(preset)}
+                      style={{ backgroundColor: preset.bg, color: preset.color }}
+                      className="px-2.5 py-1 rounded-xl text-[11px] font-black brutal-border whitespace-nowrap brutal-shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Note input */}
+              <input
+                type="text"
+                placeholder="Viết caption cho bạn bè..."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="w-full px-3.5 py-2 bg-white brutal-border rounded-xl text-sm font-bold placeholder:text-gray-400 focus:outline-none"
+              />
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => {
+                    SoundService.playClick();
+                    setStickers([]);
+                    setActiveFilter('normal');
+                    startLiveCamera(facingMode);
+                  }}
+                >
+                  <RefreshCw size={14} className="mr-1" /> Chụp Lại
+                </Button>
+                <Button
+                  variant="pink"
+                  className="flex-2"
+                  onClick={handleConfirm}
+                >
+                  Gửi Lên Locket (+15 XP) 🚀
+                </Button>
               </div>
             </div>
+          ) : (
+            /* LIVE SHOOTING DOCK (True Locket Camera Feel) */
+            <div className="flex flex-col gap-3 py-1">
+              <div className="flex items-center justify-around px-2">
+                {/* Switch Camera facing */}
+                <button
+                  type="button"
+                  onClick={toggleCameraFacing}
+                  className="w-12 h-12 rounded-2xl bg-white brutal-border brutal-shadow-sm flex items-center justify-center cursor-pointer hover:bg-gray-50 active:translate-x-0.5 active:translate-y-0.5 transition-all text-[#18181B]"
+                  title="Đổi camera trước/sau"
+                >
+                  <RefreshCw size={20} strokeWidth={2.5} />
+                </button>
 
-            {/* Sticker Tray */}
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <span className="text-[11px] font-black uppercase text-[#18181B] flex items-center gap-1">
-                  <Zap size={12} className="text-[#3A86FF]" /> Dán Sticker Comic ({stickers.length})
-                </span>
-                {stickers.length > 0 && (
-                  <button
-                    onClick={() => {
-                      SoundService.playClick();
-                      setStickers([]);
-                      setSelectedStickerId(null);
-                    }}
-                    className="text-[10px] font-black text-red-500 hover:underline flex items-center gap-0.5 cursor-pointer"
-                  >
-                    <Trash2 size={10} /> Xóa hết
-                  </button>
-                )}
+                {/* Big Mechanical Locket Shutter Button */}
+                <button
+                  type="button"
+                  onClick={takeSnapshot}
+                  className="w-20 h-20 rounded-full bg-white brutal-border-3 brutal-shadow-lg flex items-center justify-center cursor-pointer hover:scale-105 active:scale-90 transition-all p-1"
+                  title="Nhấn để chụp locket"
+                >
+                  <div className="w-full h-full rounded-full bg-[#FF6B8B] brutal-border flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-white opacity-80" />
+                  </div>
+                </button>
+
+                {/* Pick file upload */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-12 h-12 rounded-2xl bg-white brutal-border brutal-shadow-sm flex items-center justify-center cursor-pointer hover:bg-gray-50 active:translate-x-0.5 active:translate-y-0.5 transition-all text-[#18181B]"
+                  title="Tải ảnh có sẵn"
+                >
+                  <Upload size={20} strokeWidth={2.5} />
+                </button>
               </div>
-              <div className="flex gap-1.5 overflow-x-auto pb-1">
-                {STICKER_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => addSticker(preset)}
-                    style={{ backgroundColor: preset.bg, color: preset.color }}
-                    className="px-2.5 py-1 rounded-xl text-[11px] font-black brutal-border whitespace-nowrap brutal-shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
-                  >
-                    {preset.label}
-                  </button>
-                ))}
+
+              {/* Quick sample photo shortcut */}
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    SoundService.playClick();
+                    setPreviewUrl(samplePhotos[Math.floor(Math.random() * samplePhotos.length)]);
+                    setIsEditorMode(true);
+                  }}
+                  className="text-[11px] font-black text-gray-500 hover:text-[#18181B] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                >
+                  <Sparkles size={12} className="text-[#FFD166]" /> Hoặc thử với ảnh mẫu demo
+                </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Note input */}
-        <input
-          type="text"
-          placeholder="Viết caption cho bạn bè..."
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          className="w-full px-4 py-2 bg-white brutal-border rounded-xl text-sm font-bold placeholder:text-gray-400 focus:outline-none"
-        />
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => {
-              SoundService.playClick();
-              stopLiveCamera();
-              onClose();
-            }}
-          >
-            Huỷ
-          </Button>
-          <Button variant="pink" fullWidth onClick={handleConfirm}>
-            Gửi Locket (+15 XP) 🚀
-          </Button>
+          )}
         </div>
       </div>
     </div>

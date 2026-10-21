@@ -4,7 +4,6 @@ import { Plus, Camera, Sparkles, Flame } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { Habit } from '../../types';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { BrutalCheckbox } from '../ui/BrutalCheckbox';
 import { CameraModal } from './CameraModal';
@@ -70,13 +69,13 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           size="sm"
           variant="yellow"
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 uppercase tracking-wider font-black text-xs"
         >
-          <Plus size={16} strokeWidth={3} /> Thêm Mới
+          <Plus size={16} strokeWidth={3.5} /> Thêm Mới
         </Button>
       </div>
 
-      {/* Habit List */}
+      {/* Habit List with Retro Comic Stylings */}
       <div className="flex flex-col gap-3">
         {habits.map((habit) => (
           <motion.div
@@ -84,8 +83,8 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`brutal-card rounded-2xl p-3.5 flex items-center justify-between transition-colors ${
-              habit.completedToday ? 'bg-[#D8F3DC]/60' : 'bg-white'
+            className={`brutal-card rounded-2xl p-3.5 flex items-center justify-between transition-colors border-[3px] border-[#18181B] ${
+              habit.completedToday ? 'bg-[#D8F3DC]' : 'bg-white'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -96,9 +95,9 @@ export const TasksTab: React.FC<TasksTabProps> = ({
               />
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-lg">{habit.icon}</span>
+                  <span className="text-xl drop-shadow-[1px_1px_0px_#18181B]">{habit.icon}</span>
                   <span
-                    className={`font-black text-sm text-[#18181B] ${
+                    className={`font-black text-sm text-[#18181B] uppercase tracking-tight ${
                       habit.completedToday ? 'line-through opacity-70' : ''
                     }`}
                   >
@@ -106,10 +105,10 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="flex items-center gap-0.5 text-xs font-black text-orange-500">
+                  <span className="flex items-center gap-0.5 text-xs font-black text-orange-600 bg-[#FFD166]/50 px-2 py-0.5 rounded-md border border-[#18181B]">
                     <Flame size={13} fill="#FB923C" /> {habit.streakCount} ngày
                   </span>
-                  <span className="text-[10px] font-bold text-gray-400">
+                  <span className="text-[10px] font-black text-gray-500 uppercase">
                     {habit.reminderTime || 'Hàng ngày'}
                   </span>
                 </div>
@@ -117,34 +116,41 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             </div>
 
             {/* Quick Locket Cam Button */}
-            <Button
-              size="sm"
-              variant={habit.completedToday ? 'secondary' : 'pink'}
+            <button
               onClick={() => setSelectedHabitForCamera(habit)}
-              className="p-2 aspect-square rounded-xl cursor-pointer"
+              className={`w-11 h-11 rounded-2xl brutal-border-3 brutal-shadow-sm flex items-center justify-center cursor-pointer transition-transform active:translate-x-0.5 active:translate-y-0.5 ${
+                habit.completedToday ? 'bg-gray-100 text-[#18181B]' : 'bg-[#FF6B8B] text-white hover:scale-105'
+              }`}
               title="Chụp ảnh Locket"
             >
-              <Camera size={16} strokeWidth={2.5} />
-            </Button>
+              <Camera size={20} strokeWidth={2.5} />
+            </button>
           </motion.div>
         ))}
       </div>
 
-      {/* Tomorrow preview section */}
-      <Card variant="yellow" className="mt-2">
-        <div className="flex items-center justify-between">
+      {/* Tomorrow preview section - Comic Editorial Banner */}
+      <div className="bg-[#FFF3B0] rounded-3xl brutal-border-3 brutal-shadow p-4 relative overflow-hidden mt-2">
+        <div
+          className="absolute inset-0 opacity-10 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(#18181B 2px, transparent 2px)',
+            backgroundSize: '10px 10px',
+          }}
+        />
+        <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-2">
-            <Sparkles size={18} className="text-[#18181B]" />
+            <Sparkles size={20} className="text-[#18181B]" />
             <span className="font-black text-xs uppercase tracking-wider text-[#18181B]">
-              Nhiệm Vụ Ngày Mai
+              NHIỆM VỤ NGÀY MAI ⚡
             </span>
           </div>
-          <Badge variant="dark">+50 XP Bonus</Badge>
+          <Badge variant="dark">+50 XP BONUS</Badge>
         </div>
-        <p className="text-xs font-bold text-gray-700 mt-2">
+        <p className="text-xs font-black text-gray-800 mt-2 relative z-10 leading-relaxed">
           Duy trì đều đặn để giữ ngọn lửa Streak không bị đóng băng nhé! ❄️🔥
         </p>
-      </Card>
+      </div>
 
       {/* Camera Check-in Modal */}
       {selectedHabitForCamera && (

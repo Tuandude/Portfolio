@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CheckInPost } from '../../types';
-import { SquircleFrame } from '../ui/SquircleFrame';
 import { Badge } from '../ui/Badge';
 import { SoundService } from '../../services/sound';
 
@@ -103,8 +102,8 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
               </Badge>
             </div>
 
-            {/* Squircle Photo View */}
-            <SquircleFrame aspectRatio="square">
+            {/* Squircle Photo View with Retro Comic Frame */}
+            <div className="relative w-full aspect-square rounded-[32px] brutal-border-3 brutal-shadow-lg overflow-hidden bg-black/10">
               <img
                 src={post.imageUrl}
                 alt={post.habitTitle}
@@ -113,14 +112,14 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
 
               {/* Caption Overlay */}
               {post.note && (
-                <div className="absolute bottom-3 inset-x-3 bg-black/60 backdrop-blur-md text-white font-bold text-xs p-2.5 rounded-2xl border border-white/20">
-                  {post.note}
+                <div className="absolute bottom-3 inset-x-3 bg-[#18181B]/80 backdrop-blur-md text-white font-black text-xs p-3 rounded-2xl brutal-border shadow-md">
+                  <span className="text-[#FFD166] mr-1">💬</span> {post.note}
                 </div>
               )}
-            </SquircleFrame>
+            </div>
 
-            {/* Reaction Bar */}
-            <div className="flex items-center justify-between bg-white px-3 py-2 rounded-2xl brutal-border brutal-shadow-sm mt-0.5">
+            {/* Reaction Bar - Comic Style */}
+            <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-2xl brutal-border-3 brutal-shadow mt-1">
               <div className="flex items-center gap-1.5">
                 {reactionEmojis.map((emoji) => {
                   const count = post.reactions[emoji] || 0;
@@ -128,16 +127,16 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                     <button
                       key={emoji}
                       onClick={() => handleReactionClick(post.id, emoji)}
-                      className="px-2 py-1 rounded-xl hover:bg-gray-100 flex items-center gap-1 font-black text-xs active:scale-90 transition-transform cursor-pointer"
+                      className="px-2.5 py-1 rounded-xl bg-gray-50 hover:bg-[#FFD166] border border-[#18181B] flex items-center gap-1 font-black text-xs active:scale-90 transition-all cursor-pointer"
                     >
-                      <span>{emoji}</span>
-                      {count > 0 && <span className="text-[11px] text-gray-600">{count}</span>}
+                      <span className="text-sm">{emoji}</span>
+                      {count > 0 && <span className="text-xs font-black text-[#18181B]">{count}</span>}
                     </button>
                   );
                 })}
               </div>
 
-              <span className="text-[10px] font-black text-gray-400">Gõ để thả tim!</span>
+              <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">THẢ TIM! ✨</span>
             </div>
           </div>
         ))}
