@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-ink: #18181B;
+  --color-paper: #FDFBF7;
+  --color-dark-paper: #121215;
+  --color-dark-card: #1E1E26;
+  --color-dark-border: #3F3F4D;
+  --color-dark-text: #F4F4F6;
+}
+
 :root {
   --bg-paper: #FDFBF7;
   --border-dark: #18181B;
@@ -8,6 +19,17 @@
   --comic-blue: #3A86FF;
   --comic-green: #52B788;
   --comic-purple: #9B5DE5;
+  --card-bg: #FFFFFF;
+  --text-main: #18181B;
+  --shadow-color: #18181B;
+}
+
+.dark {
+  --bg-paper: #121215;
+  --border-dark: #3F3F4D;
+  --card-bg: #1E1E26;
+  --text-main: #F4F4F6;
+  --shadow-color: #09090C;
 }
 
 * {
@@ -15,35 +37,62 @@
 }
 
 body {
-  background-color: #FDFBF7;
-  color: #18181B;
+  background-color: var(--bg-paper);
+  color: var(--text-main);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
   /* Retro Comic Halftone Dots Subtle Canvas Background */
   background-image: radial-gradient(#18181B 1.2px, transparent 1.2px);
   background-size: 20px 20px;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Neo-Brutalism & Retro Comic Shadows and Borders */
+.dark body {
+  background-color: #121215;
+  color: #F4F4F6;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.2px);
+}
+
+/* Neo-Brutalism & Retro Comic Shadows and Borders - Harmonious Dark Palette */
 .brutal-border {
   border: 2.5px solid #18181B;
+}
+
+.dark .brutal-border {
+  border: 2.5px solid #3F3F4D;
 }
 
 .brutal-border-3 {
   border: 3.5px solid #18181B;
 }
 
+.dark .brutal-border-3 {
+  border: 3.5px solid #3F3F4D;
+}
+
 .brutal-shadow-sm {
   box-shadow: 2.5px 2.5px 0px 0px #18181B;
+}
+
+.dark .brutal-shadow-sm {
+  box-shadow: 2.5px 2.5px 0px 0px #09090C;
 }
 
 .brutal-shadow {
   box-shadow: 4px 4px 0px 0px #18181B;
 }
 
+.dark .brutal-shadow {
+  box-shadow: 4px 4px 0px 0px #09090C;
+}
+
 .brutal-shadow-lg {
   box-shadow: 6px 6px 0px 0px #18181B;
+}
+
+.dark .brutal-shadow-lg {
+  box-shadow: 6px 6px 0px 0px #09090C;
 }
 
 .brutal-btn {
@@ -52,14 +101,27 @@ body {
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
+.dark .brutal-btn {
+  border: 2.5px solid #3F3F4D;
+  box-shadow: 3.5px 3.5px 0px 0px #09090C;
+}
+
 .brutal-btn:hover {
   transform: translateY(-2px);
   box-shadow: 5px 5px 0px 0px #18181B;
 }
 
+.dark .brutal-btn:hover {
+  box-shadow: 5px 5px 0px 0px #09090C;
+}
+
 .brutal-btn:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0px 0px #18181B;
+}
+
+.dark .brutal-btn:active {
+  box-shadow: 1px 1px 0px 0px #09090C;
 }
 
 .brutal-card {
@@ -68,9 +130,19 @@ body {
   background-color: #FFFFFF;
 }
 
+.dark .brutal-card {
+  border: 2.5px solid #3F3F4D;
+  box-shadow: 4px 4px 0px 0px #09090C;
+  background-color: #1E1E26;
+}
+
 .retro-halftone-bg {
   background-image: radial-gradient(#18181B 1.5px, transparent 1.5px);
   background-size: 10px 10px;
+}
+
+.dark .retro-halftone-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
 }
 
 .comic-title {
@@ -78,6 +150,10 @@ body {
   font-weight: 900;
   letter-spacing: -0.02em;
   text-shadow: 2px 2px 0px #18181B;
+}
+
+.dark .comic-title {
+  text-shadow: 2px 2px 0px #000000;
 }
 
 .squircle {

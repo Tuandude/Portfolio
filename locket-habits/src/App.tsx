@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CheckSquare, Image as ImageIcon, Flame, Volume2, VolumeX } from 'lucide-react';
+import { CheckSquare, Image as ImageIcon, Flame, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
 import type { TimePhase, WeatherState, Habit, CheckInPost, UserProfile } from './types';
 import { StorageService } from './services/storage';
 import { SoundService } from './services/sound';
@@ -17,6 +17,20 @@ export function App() {
   const [posts, setPosts] = useState<CheckInPost[]>([]);
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [isMuted, setIsMuted] = useState(SoundService.getMuted());
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('locket_theme') as 'light' | 'dark') || 'light';
+  });
+
+  // Handle theme changes
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('locket_theme', theme);
+  }, [theme]);
 
   // Load data on start
   useEffect(() => {
@@ -82,8 +96,13 @@ export function App() {
     if (!muted) SoundService.playClick();
   };
 
+  const handleToggleTheme = () => {
+    SoundService.playClick();
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   return (
-    <div className="min-h-screen bg-[#FDFBF7] text-[#18181B] flex justify-center selection:bg-[#FFD166]">
+    <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-[var(--bg-paper)] text-[#18181B] dark:text-[#F4F4F6] flex justify-center selection:bg-[#FFD166] transition-colors duration-200`}>
       {/* Mobile Frame Container */}
       <div className="w-full max-w-md min-h-screen flex flex-col px-4 pt-3 pb-8 relative">
         {/* Sky Header */}
@@ -122,17 +141,17 @@ export function App() {
         </main>
 
         {/* Bottom Floating Navigation Dock */}
-        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-white rounded-3xl brutal-border brutal-shadow-lg p-1.5 flex items-center justify-between z-40">
+        <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm bg-white dark:bg-[#1E1E22] rounded-3xl brutal-border brutal-shadow-lg p-1.5 flex items-center justify-between z-40 transition-colors">
           <div className="flex items-center gap-1">
             <button
               onClick={() => {
                 SoundService.playClick();
                 setActiveTab('tasks');
               }}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl font-black text-xs transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl font-black text-xs transition-all cursor-pointer ${
                 activeTab === 'tasks'
                   ? 'bg-[#FFD166] text-[#18181B] brutal-border brutal-shadow-sm'
-                  : 'text-gray-500 hover:text-[#18181B]'
+                  : 'text-gray-500 hover:text-[#18181B] dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               <CheckSquare size={16} strokeWidth={2.5} />
@@ -144,14 +163,14 @@ export function App() {
                 SoundService.playClick();
                 setActiveTab('locket');
               }}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl font-black text-xs transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl font-black text-xs transition-all cursor-pointer ${
                 activeTab === 'locket'
                   ? 'bg-[#3A86FF] text-white brutal-border brutal-shadow-sm'
-                  : 'text-gray-500 hover:text-[#18181B]'
+                  : 'text-gray-500 hover:text-[#18181B] dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               <ImageIcon size={16} strokeWidth={2.5} />
-              Locket Wall
+              Locket
             </button>
 
             <button
@@ -159,27 +178,41 @@ export function App() {
                 SoundService.playClick();
                 setActiveTab('streak');
               }}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl font-black text-xs transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-2xl font-black text-xs transition-all cursor-pointer ${
                 activeTab === 'streak'
                   ? 'bg-[#FF6B8B] text-white brutal-border brutal-shadow-sm'
-                  : 'text-gray-500 hover:text-[#18181B]'
+                  : 'text-gray-500 hover:text-[#18181B] dark:text-gray-400 dark:hover:text-white'
               }`}
             >
               <Flame size={16} strokeWidth={2.5} />
-              Chuỗi Ngày
+              Chuỗi
             </button>
           </div>
 
-          {/* Sound Toggle */}
-          <button
-            onClick={handleToggleMute}
-            className={`w-9 h-9 rounded-2xl flex items-center justify-center brutal-border transition-all cursor-pointer mr-1 ${
-              isMuted ? 'bg-gray-200 text-gray-400' : 'bg-[#D8F3DC] text-[#18181B] brutal-shadow-sm'
-            }`}
-            title={isMuted ? 'Bật âm thanh cơ học' : 'Tắt âm thanh'}
-          >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          </button>
+          {/* Action buttons: Theme & Sound Toggles */}
+          <div className="flex items-center gap-1 mr-0.5">
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={handleToggleTheme}
+              className="w-8 h-8 rounded-2xl flex items-center justify-center brutal-border transition-all cursor-pointer bg-[#FFD166] text-[#18181B] dark:bg-[#9B5DE5] dark:text-white brutal-shadow-sm"
+              title={theme === 'dark' ? 'Chuyển sang chế độ Sáng' : 'Chuyển sang chế độ Tối'}
+            >
+              {theme === 'dark' ? <Sun size={15} strokeWidth={2.5} /> : <Moon size={15} strokeWidth={2.5} />}
+            </button>
+
+            {/* Sound Toggle */}
+            <button
+              onClick={handleToggleMute}
+              className={`w-8 h-8 rounded-2xl flex items-center justify-center brutal-border transition-all cursor-pointer ${
+                isMuted
+                  ? 'bg-gray-200 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
+                  : 'bg-[#D8F3DC] text-[#18181B] dark:bg-[#52B788] dark:text-white brutal-shadow-sm'
+              }`}
+              title={isMuted ? 'Bật âm thanh cơ học' : 'Tắt âm thanh'}
+            >
+              {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            </button>
+          </div>
         </nav>
       </div>
     </div>

@@ -538,17 +538,17 @@ export const CameraModal: React.FC<CameraModalProps> = ({
         </div>
 
         {/* BOTTOM CONTROLS DECK */}
-        <div className="bg-[#FDFBF7] p-4 flex flex-col gap-3">
+        <div className="bg-[#FDFBF7] dark:bg-[#1A1A20] p-4 flex flex-col gap-3 transition-colors border-t-2 border-black/10 dark:border-white/10">
           {previewUrl ? (
             /* EDIT & SUBMIT CONTROLS */
             <div className="flex flex-col gap-3">
               {/* Filter Selector Strip */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-[11px] font-black uppercase text-[#18181B] flex items-center gap-1">
+                  <span className="text-[11px] font-black uppercase text-[#18181B] dark:text-[#F4F4F6] flex items-center gap-1">
                     <Sparkles size={12} className="text-[#FF6B8B]" /> Bộ Lọc Retro Comic
                   </span>
-                  <span className="text-[10px] font-black text-gray-500 uppercase">{activeFilter}</span>
+                  <span className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase">{activeFilter}</span>
                 </div>
                 <div className="flex gap-1.5 overflow-x-auto pb-1">
                   {(['normal', 'halftone', 'comic-bw', 'y2k', 'cyber'] as PhotoFilter[]).map((f) => (
@@ -561,7 +561,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                       className={`px-3 py-1 rounded-xl text-[11px] font-black whitespace-nowrap brutal-border transition-all cursor-pointer ${
                         activeFilter === f
                           ? 'bg-[#FFD166] brutal-shadow-sm text-[#18181B]'
-                          : 'bg-white text-gray-600 hover:bg-gray-100'
+                          : 'bg-white dark:bg-[#23232C] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2C2C38]'
                       }`}
                     >
                       {f === 'normal' && 'Gốc 📸'}
@@ -577,7 +577,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               {/* Sticker Selector Strip */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-[11px] font-black uppercase text-[#18181B] flex items-center gap-1">
+                  <span className="text-[11px] font-black uppercase text-[#18181B] dark:text-[#F4F4F6] flex items-center gap-1">
                     <Zap size={12} className="text-[#3A86FF]" /> Dán Sticker Comic ({stickers.length})
                   </span>
                   {stickers.length > 0 && (
@@ -613,7 +613,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                 placeholder="Viết caption cho bạn bè..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="w-full px-3.5 py-2 bg-white brutal-border rounded-xl text-sm font-bold placeholder:text-gray-400 focus:outline-none"
+                className="w-full px-3.5 py-2 bg-white dark:bg-[#23232C] dark:text-white brutal-border rounded-xl text-sm font-bold placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none"
               />
 
               {/* Action Buttons */}
@@ -647,7 +647,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                 <button
                   type="button"
                   onClick={toggleCameraFacing}
-                  className="w-12 h-12 rounded-2xl bg-white brutal-border brutal-shadow-sm flex items-center justify-center cursor-pointer hover:bg-gray-50 active:translate-x-0.5 active:translate-y-0.5 transition-all text-[#18181B]"
+                  className="w-12 h-12 rounded-2xl bg-white dark:bg-[#23232C] brutal-border brutal-shadow-sm flex items-center justify-center cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2C2C38] active:translate-x-0.5 active:translate-y-0.5 transition-all text-[#18181B] dark:text-white"
                   title="Đổi camera trước/sau"
                 >
                   <RefreshCw size={20} strokeWidth={2.5} />

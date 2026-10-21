@@ -50,27 +50,33 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
   return (
     <div className="flex flex-col gap-4 pb-20 relative">
       {/* Tab Filter Switcher */}
-      <div className="flex bg-white rounded-2xl brutal-border p-1 gap-1">
+      <div className="flex bg-white dark:bg-[#1A1A20] rounded-2xl brutal-border dark:border-[#2E2E38] p-1 gap-1">
         <button
           onClick={() => setFilter('all')}
-          className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all ${
-            filter === 'all' ? 'bg-[#FFD166] brutal-border brutal-shadow-sm' : 'text-gray-500'
+          className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            filter === 'all'
+              ? 'bg-[#FFD166] text-[#18181B] brutal-border brutal-shadow-sm'
+              : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           Tất Cả 🌟
         </button>
         <button
           onClick={() => setFilter('friends')}
-          className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all ${
-            filter === 'friends' ? 'bg-[#3A86FF] text-white brutal-border brutal-shadow-sm' : 'text-gray-500'
+          className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            filter === 'friends'
+              ? 'bg-[#3A86FF] text-white brutal-border brutal-shadow-sm'
+              : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           Bạn Bè 👥
         </button>
         <button
           onClick={() => setFilter('solo')}
-          className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all ${
-            filter === 'solo' ? 'bg-[#FF6B8B] text-white brutal-border brutal-shadow-sm' : 'text-gray-500'
+          className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+            filter === 'solo'
+              ? 'bg-[#FF6B8B] text-white brutal-border brutal-shadow-sm'
+              : 'text-gray-500 dark:text-gray-400'
           }`}
         >
           Của Tôi 👤
@@ -87,13 +93,13 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                 <img
                   src={post.authorAvatar}
                   alt={post.authorName}
-                  className="w-8 h-8 rounded-full brutal-border object-cover"
+                  className="w-8 h-8 rounded-full brutal-border dark:border-[#2E2E38] object-cover"
                 />
                 <div className="flex flex-col">
-                  <span className="font-black text-xs text-[#18181B] leading-tight">
+                  <span className="font-black text-xs text-[#18181B] dark:text-[#F4F4F6] leading-tight">
                     {post.authorName}
                   </span>
-                  <span className="text-[10px] font-bold text-gray-500">{post.timestamp}</span>
+                  <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400">{post.timestamp}</span>
                 </div>
               </div>
 
@@ -103,7 +109,7 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
             </div>
 
             {/* Squircle Photo View with Retro Comic Frame */}
-            <div className="relative w-full aspect-square rounded-[32px] brutal-border-3 brutal-shadow-lg overflow-hidden bg-black/10">
+            <div className="relative w-full aspect-square rounded-[32px] brutal-border-3 dark:border-[#2E2E38] brutal-shadow-lg overflow-hidden bg-black/20">
               <img
                 src={post.imageUrl}
                 alt={post.habitTitle}
@@ -112,14 +118,14 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
 
               {/* Caption Overlay */}
               {post.note && (
-                <div className="absolute bottom-3 inset-x-3 bg-[#18181B]/80 backdrop-blur-md text-white font-black text-xs p-3 rounded-2xl brutal-border shadow-md">
+                <div className="absolute bottom-3 inset-x-3 bg-[#18181B]/85 dark:bg-[#121215]/90 backdrop-blur-md text-white font-black text-xs p-3 rounded-2xl brutal-border dark:border-[#2E2E38] shadow-md">
                   <span className="text-[#FFD166] mr-1">💬</span> {post.note}
                 </div>
               )}
             </div>
 
             {/* Reaction Bar - Comic Style */}
-            <div className="flex items-center justify-between bg-white px-3.5 py-2 rounded-2xl brutal-border-3 brutal-shadow mt-1">
+            <div className="flex items-center justify-between bg-white dark:bg-[#1A1A20] px-3.5 py-2 rounded-2xl brutal-border-3 dark:border-[#2E2E38] brutal-shadow mt-1">
               <div className="flex items-center gap-1.5">
                 {reactionEmojis.map((emoji) => {
                   const count = post.reactions[emoji] || 0;
@@ -127,16 +133,16 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                     <button
                       key={emoji}
                       onClick={() => handleReactionClick(post.id, emoji)}
-                      className="px-2.5 py-1 rounded-xl bg-gray-50 hover:bg-[#FFD166] border border-[#18181B] flex items-center gap-1 font-black text-xs active:scale-90 transition-all cursor-pointer"
+                      className="px-2.5 py-1 rounded-xl bg-gray-50 dark:bg-[#23232C] hover:bg-[#FFD166] dark:hover:bg-[#FFD166] dark:hover:text-[#18181B] border border-[#18181B] dark:border-[#383844] flex items-center gap-1 font-black text-xs active:scale-90 transition-all cursor-pointer"
                     >
                       <span className="text-sm">{emoji}</span>
-                      {count > 0 && <span className="text-xs font-black text-[#18181B]">{count}</span>}
+                      {count > 0 && <span className="text-xs font-black text-[#18181B] dark:text-[#F4F4F6]">{count}</span>}
                     </button>
                   );
                 })}
               </div>
 
-              <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">THẢ TIM! ✨</span>
+              <span className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider">THẢ TIM! ✨</span>
             </div>
           </div>
         ))}
