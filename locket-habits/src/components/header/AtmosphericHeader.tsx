@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { RefreshCw, Zap } from 'lucide-react';
 import type { TimePhase, WeatherState } from '../../types';
 import { SoundService } from '../../services/sound';
