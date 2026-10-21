@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Camera, Sparkles, Flame } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import type { Habit } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -29,16 +28,10 @@ export const TasksTab: React.FC<TasksTabProps> = ({
   const [newCategory] = useState<Habit['category']>('health');
   const [newIcon, setNewIcon] = useState('✨');
 
-  // Trigger confetti and toggle
+  // Mechanical sound toggle without confetti
   const handleCheck = (habit: Habit) => {
     if (!habit.completedToday) {
       SoundService.playSuccess();
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.7 },
-        colors: ['#FF6B8B', '#FFD166', '#3A86FF', '#52B788'],
-      });
     } else {
       SoundService.playClick();
     }
