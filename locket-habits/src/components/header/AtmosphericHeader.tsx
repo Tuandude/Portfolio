@@ -97,23 +97,68 @@ export const AtmosphericHeader: React.FC<AtmosphericHeaderProps> = ({
           }}
         />
 
-        {/* Rain Streaks: Geometric Retro Comic diagonal slashes */}
+        {/* Rain Effect: Dynamic Comic Rain Storm with Dense Angled Slashes and Splash Ripples */}
         {weather === 'rainy' && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
-            {[...Array(14)].map((_, i) => (
+            {/* Multiple staggered rain columns covering the whole banner */}
+            {[
+              { x: '3%', delay: 0, dur: 0.42, len: 'h-8' },
+              { x: '9%', delay: 0.18, dur: 0.38, len: 'h-10' },
+              { x: '16%', delay: 0.05, dur: 0.45, len: 'h-7' },
+              { x: '23%', delay: 0.25, dur: 0.4, len: 'h-11' },
+              { x: '30%', delay: 0.12, dur: 0.36, len: 'h-9' },
+              { x: '37%', delay: 0.28, dur: 0.44, len: 'h-8' },
+              { x: '44%', delay: 0.02, dur: 0.39, len: 'h-10' },
+              { x: '51%', delay: 0.21, dur: 0.43, len: 'h-7' },
+              { x: '58%', delay: 0.08, dur: 0.37, len: 'h-11' },
+              { x: '65%', delay: 0.29, dur: 0.41, len: 'h-9' },
+              { x: '72%', delay: 0.15, dur: 0.46, len: 'h-8' },
+              { x: '79%', delay: 0.04, dur: 0.35, len: 'h-10' },
+              { x: '86%', delay: 0.22, dur: 0.42, len: 'h-8' },
+              { x: '93%', delay: 0.11, dur: 0.38, len: 'h-11' },
+              // Second layer with staggered timing & lighter contrast for depth
+              { x: '6%', delay: 0.31, dur: 0.48, len: 'h-6' },
+              { x: '19%', delay: 0.35, dur: 0.47, len: 'h-8' },
+              { x: '33%', delay: 0.22, dur: 0.5, len: 'h-7' },
+              { x: '48%', delay: 0.39, dur: 0.45, len: 'h-9' },
+              { x: '62%', delay: 0.27, dur: 0.52, len: 'h-7' },
+              { x: '76%', delay: 0.33, dur: 0.46, len: 'h-8' },
+              { x: '90%', delay: 0.24, dur: 0.49, len: 'h-6' },
+            ].map((drop, i) => (
               <motion.div
                 key={i}
-                initial={{ y: -40, x: `${(i * 7.5) % 100}%` }}
-                animate={{ y: 220 }}
+                initial={{ y: -60 }}
+                animate={{ y: 260 }}
                 transition={{
-                  duration: 0.5 + (i % 3) * 0.15,
+                  duration: drop.dur,
                   repeat: Infinity,
                   ease: 'linear',
-                  delay: (i * 0.04) % 0.4,
+                  delay: drop.delay,
                 }}
-                className="absolute w-1 h-7 bg-[#18181B] rotate-[-25deg] rounded-full opacity-80"
+                style={{ left: drop.x }}
+                className={`absolute w-1 ${drop.len} bg-[#18181B] -rotate-20 rounded-full opacity-70`}
               />
             ))}
+
+            {/* Bottom Comic Splash Drops bouncing on the footer border */}
+            <div className="absolute bottom-1 inset-x-0 flex justify-around px-4">
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={`splash-${i}`}
+                  animate={{
+                    scale: [0.6, 1.4, 0.6],
+                    opacity: [0.3, 0.9, 0.3],
+                    y: [0, -6, 0],
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    repeat: Infinity,
+                    delay: i * 0.12,
+                  }}
+                  className="w-2.5 h-1 bg-[#18181B] rounded-full"
+                />
+              ))}
+            </div>
           </div>
         )}
 
@@ -239,11 +284,40 @@ export const AtmosphericHeader: React.FC<AtmosphericHeaderProps> = ({
                 </div>
               )}
 
-              {/* Downpour Thunder / Rain Lightning Bolt */}
+              {/* Downpour Thunder / Rain Cloud Overlay with Raindrops & Lightning Bolt */}
               {weather === 'rainy' && (
-                <div className="absolute -bottom-1 -right-2 z-30">
-                  <div className="bg-[#FFD166] text-[#18181B] p-1.5 rounded-lg brutal-border brutal-shadow-sm font-black text-xs flex items-center justify-center">
-                    <Zap size={18} fill="#18181B" />
+                <div className="absolute -bottom-2 -left-3 z-30 flex flex-col items-center">
+                  {/* Heavy Storm Cloud with Bold Inking */}
+                  <svg width="74" height="46" viewBox="0 0 74 46" className="drop-shadow-[3px_3px_0px_#18181B]">
+                    <path
+                      d="M 14,40 L 60,40 A 11,11 0 0 0 62,20 A 15,15 0 0 0 38,11 A 13,13 0 0 0 14,26 A 9,9 0 0 0 14,40 Z"
+                      fill="#3A86FF"
+                      stroke="#18181B"
+                      strokeWidth="3.5"
+                      strokeLinejoin="round"
+                    />
+                    {/* Shadow inking lines */}
+                    <line x1="22" y1="34" x2="54" y2="34" stroke="#18181B" strokeWidth="2.5" strokeLinecap="round" />
+                    <line x1="28" y1="28" x2="48" y2="28" stroke="#18181B" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+
+                  {/* 3 Comic Raindrops pouring under cloud */}
+                  <div className="flex gap-2 -mt-1">
+                    {[0, 1, 2].map((idx) => (
+                      <motion.div
+                        key={idx}
+                        animate={{ y: [0, 8, 0], opacity: [0.6, 1, 0.6] }}
+                        transition={{ duration: 0.4, repeat: Infinity, delay: idx * 0.15 }}
+                        className="w-1.5 h-3.5 bg-[#FFD166] rounded-full border border-[#18181B] -rotate-12"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Lightning badge */}
+                  <div className="absolute -top-1 -right-3">
+                    <div className="bg-[#FFD166] text-[#18181B] p-1.5 rounded-xl brutal-border brutal-shadow-sm font-black flex items-center justify-center">
+                      <Zap size={16} fill="#18181B" />
+                    </div>
                   </div>
                 </div>
               )}
