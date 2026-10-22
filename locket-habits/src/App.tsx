@@ -94,12 +94,19 @@ export function App() {
     CloudSyncService.syncUp({ habits: updatedHabits, profile: updatedProfile });
   };
 
-  const handleAddHabit = (title: string, category: Habit['category'], icon: string) => {
+  const handleAddHabit = (
+    title: string,
+    category: Habit['category'],
+    icon: string,
+    targetDaysPerWeek: number = 7,
+    reminderTime?: string
+  ) => {
     StorageService.addHabit({
       title,
       category,
       icon,
-      targetDaysPerWeek: 7,
+      targetDaysPerWeek,
+      reminderTime,
     });
     const updatedHabits = StorageService.getHabits();
     setHabits([...updatedHabits]);

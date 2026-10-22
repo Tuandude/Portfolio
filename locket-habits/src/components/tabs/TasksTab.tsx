@@ -7,12 +7,19 @@ import { Badge } from '../ui/Badge';
 import { BrutalCheckbox } from '../ui/BrutalCheckbox';
 import { RetroHabitIcon } from '../ui/RetroHabitIcon';
 import { CameraModal } from './CameraModal';
+import { CreateHabitModal } from './CreateHabitModal';
 import { SoundService } from '../../services/sound';
 
 interface TasksTabProps {
   habits: Habit[];
   onToggleHabit: (id: string) => void;
-  onAddHabit: (title: string, category: Habit['category'], icon: string) => void;
+  onAddHabit: (
+    title: string,
+    category: Habit['category'],
+    icon: string,
+    targetDaysPerWeek?: number,
+    reminderTime?: string
+  ) => void;
   onCheckInPhoto: (habitId: string, imageUrl: string, note: string, voiceUrl?: string) => void;
 }
 
@@ -24,9 +31,6 @@ export const TasksTab: React.FC<TasksTabProps> = ({
 }) => {
   const [selectedHabitForCamera, setSelectedHabitForCamera] = useState<Habit | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory] = useState<Habit['category']>('health');
-  const [newIcon, setNewIcon] = useState('✨');
 
   // Mechanical sound toggle without confetti
   const handleCheck = (habit: Habit) => {
@@ -36,14 +40,6 @@ export const TasksTab: React.FC<TasksTabProps> = ({
       SoundService.playClick();
     }
     onToggleHabit(habit.id);
-  };
-
-  const handleCreateHabit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-    onAddHabit(newTitle, newCategory, newIcon);
-    setNewTitle('');
-    setShowAddModal(false);
   };
 
   return (
@@ -168,63 +164,14 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         />
       )}
 
-      {/* Add Habit Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#FDFBF7] dark:bg-[#1A1A20] brutal-border brutal-shadow-lg rounded-[32px] p-5 w-full max-w-sm flex flex-col gap-4">
-            <h3 className="font-black text-lg text-[#18181B] dark:text-[#F4F4F6]">Thêm Thói Quen Mới ✨</h3>
-            <form onSubmit={handleCreateHabit} className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="Tên thói quen (vd: Uống nước, Yoga...)"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full px-4 py-2.5 bg-white dark:bg-[#23232C] dark:text-white brutal-border rounded-xl text-sm font-bold placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none"
-                autoFocus
-              />
-
-              <div className="flex gap-2">
-                {[
-                  { key: 'water', label: '💧 Nước' },
-                  { key: 'book', label: '📖 Sách' },
-                  { key: 'run', label: '🏃 Chạy' },
-                  { key: 'meditate', label: '🧘 Thiền' },
-                  { key: 'salad', label: '🥗 Healthy' },
-                  { key: 'code', label: '💻 Code' },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setNewIcon(item.key)}
-                    className={`w-10 h-10 rounded-xl brutal-border flex items-center justify-center cursor-pointer transition-transform ${
-                      newIcon === item.key
-                        ? 'bg-[#FFD166] text-[#18181B] brutal-shadow-sm scale-105'
-                        : 'bg-white dark:bg-[#23232C] hover:bg-gray-100 dark:hover:bg-[#2E2E38]'
-                    }`}
-                    title={item.label}
-                  >
-                    <RetroHabitIcon name={item.key} size={22} />
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  fullWidth
-                  onClick={() => setShowAddModal(false)}
-                >
-                  Huỷ
-                </Button>
-                <Button type="submit" variant="yellow" fullWidth>
-                  Tạo Thói Quen
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Create Habit Modal */}
+      <CreateHabitModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onAddHabit={(title, category, icon, targetDaysPerWeek, reminderTime) => {
+          onAddHabit(title, category, icon, targetDaysPerWeek, reminderTime);
+        }}
+      />
     </div>
   );
 };
