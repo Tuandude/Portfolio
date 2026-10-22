@@ -1,4 +1,5 @@
 import type { Habit, CheckInPost, UserProfile } from '../types';
+import { PhotoDB } from './db';
 
 const HABITS_KEY = 'locket_habits_data';
 const POSTS_KEY = 'locket_posts_data';
@@ -188,9 +189,16 @@ export const StorageService = {
 
   addPost(post: Omit<CheckInPost, 'id' | 'timestamp' | 'reactions'>): CheckInPost {
     const posts = this.getPosts();
+    const postId = 'p_' + Date.now();
+
+    // Persist heavy image to IndexedDB
+    if (post.imageUrl?.startsWith('data:image')) {
+      PhotoDB.savePhoto(postId, post.imageUrl);
+    }
+
     const newPost: CheckInPost = {
       ...post,
-      id: 'p_' + Date.now(),
+      id: postId,
       timestamp: 'Vừa xong',
       reactions: { '❤️': 1 },
     };

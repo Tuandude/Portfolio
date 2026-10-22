@@ -116,6 +116,7 @@ export const TasksTab: React.FC<TasksTabProps> = ({
             {/* Quick Locket Cam Button */}
             <button
               onClick={() => setSelectedHabitForCamera(habit)}
+              aria-label={`Chụp ảnh Locket xác nhận nhiệm vụ ${habit.title}`}
               className={`w-11 h-11 rounded-2xl brutal-border-3 brutal-shadow-sm flex items-center justify-center cursor-pointer transition-transform active:translate-x-0.5 active:translate-y-0.5 ${
                 habit.completedToday
                   ? 'bg-gray-100 text-ink dark:bg-[#2A2A36] dark:text-gray-300'

@@ -153,6 +153,95 @@ export const StreakTab: React.FC<StreakTabProps> = ({
           </p>
         )}
       </div>
+
+      {/* 30-Day Heatmap Comic Grid */}
+      <div className="bg-white dark:bg-[#1A1A20] rounded-3xl brutal-border-3 brutal-shadow p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={20} className="text-[#18181B] dark:text-[#FFD166]" strokeWidth={2.5} />
+            <h3 className="font-black text-sm text-[#18181B] dark:text-[#F4F4F6] uppercase tracking-wide">
+              Nhật Ký Đóng Dấu 30 Ngày 📅
+            </h3>
+          </div>
+          <span className="text-xs font-black bg-[#FFD166] text-[#18181B] px-2 py-0.5 rounded-md border border-[#18181B]">
+            85% HOÀN THÀNH
+          </span>
+        </div>
+
+        <p className="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-3">
+          Mỗi ô là một ngày duy trì thói quen. Đóng dấu tem comic để thắp sáng bản đồ!
+        </p>
+
+        {/* 30 cells grid */}
+        <div className="grid grid-cols-6 gap-2">
+          {Array.from({ length: 30 }).map((_, i) => {
+            const isCompleted = (i + 1) <= 24 && (i + 1) !== 7 && (i + 1) !== 16;
+            const isToday = i === 24;
+            return (
+              <div
+                key={i}
+                className={`h-11 rounded-xl brutal-border flex flex-col items-center justify-center relative transition-transform hover:scale-105 cursor-pointer ${
+                  isToday
+                    ? 'bg-[#FFD166] ring-2 ring-[#FF5400] text-[#18181B] font-black'
+                    : isCompleted
+                    ? 'bg-[#52B788] text-white dark:bg-[#1B4332]'
+                    : 'bg-gray-100 dark:bg-[#23232C] text-gray-400 dark:text-gray-600'
+                }`}
+                title={`Ngày ${i + 1}: ${isCompleted ? 'Hoàn thành' : 'Chưa check-in'}`}
+              >
+                <span className="text-[9px] font-black">{i + 1}</span>
+                {isCompleted && (
+                  <span className="text-xs leading-none">⚡</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Comic Badges & Milestones */}
+      <div className="bg-white dark:bg-[#1A1A20] rounded-3xl brutal-border-3 brutal-shadow p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Zap size={20} className="text-[#FF5400]" strokeWidth={2.5} />
+          <h3 className="font-black text-sm text-[#18181B] dark:text-[#F4F4F6] uppercase tracking-wide">
+            Huy Hiệu Comic & Cấp Độ 🎖️
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 bg-[#FFE5D9] dark:bg-[#2A1E1A] rounded-2xl brutal-border flex items-center gap-3">
+            <span className="text-2xl">🥉</span>
+            <div>
+              <div className="font-black text-xs text-[#18181B] dark:text-[#F4F4F6] uppercase">3 NGÀY • TẬP SỰ</div>
+              <div className="text-[10px] font-bold text-green-700 dark:text-green-400">Đã mở khóa ✓</div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-[#FFD166] dark:bg-[#2F2716] rounded-2xl brutal-border flex items-center gap-3">
+            <span className="text-2xl">🥈</span>
+            <div>
+              <div className="font-black text-xs text-[#18181B] dark:text-[#F4F4F6] uppercase">7 NGÀY • CHIẾN BINH</div>
+              <div className="text-[10px] font-bold text-green-700 dark:text-green-400">Đã mở khóa ✓</div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-gray-100 dark:bg-[#23232C] rounded-2xl brutal-border opacity-70 flex items-center gap-3">
+            <span className="text-2xl">🥇</span>
+            <div>
+              <div className="font-black text-xs text-[#18181B] dark:text-[#F4F4F6] uppercase">14 NGÀY • BẤT TỬ</div>
+              <div className="text-[10px] font-bold text-gray-500">Tiến độ: 5/14</div>
+            </div>
+          </div>
+
+          <div className="p-3 bg-gray-100 dark:bg-[#23232C] rounded-2xl brutal-border opacity-70 flex items-center gap-3">
+            <span className="text-2xl">👑</span>
+            <div>
+              <div className="font-black text-xs text-[#18181B] dark:text-[#F4F4F6] uppercase">30 NGÀY • HUYỀN THOẠI</div>
+              <div className="text-[10px] font-bold text-gray-500">Tiến độ: 5/30</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

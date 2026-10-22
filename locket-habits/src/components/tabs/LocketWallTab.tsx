@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Share2 } from 'lucide-react';
 import type { CheckInPost } from '../../types';
 import { Badge } from '../ui/Badge';
 import { SoundService } from '../../services/sound';
@@ -43,6 +44,24 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
     setTimeout(() => {
       setFloatingEmojis((prev) => prev.filter((item) => item.id !== newFloating.id));
     }, 1200);
+  };
+
+  const handleShareStory = async (post: CheckInPost) => {
+    SoundService.playClick();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Locket Habits - ${post.habitTitle}`,
+          text: post.note || `Vừa check-in locket thói quen ${post.habitTitle}!`,
+          url: window.location.href,
+        });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      navigator.clipboard?.writeText?.(window.location.href);
+      alert('📸 Đã sao chép liên kết Locket Story vào bộ nhớ tạm!');
+    }
   };
 
   const reactionEmojis = ['🔥', '👏', '❤️', '⚡', '✨'];
@@ -103,9 +122,19 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                 </div>
               </div>
 
-              <Badge variant={post.isFriend ? 'blue' : 'yellow'}>
-                {post.habitTitle}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                <Badge variant={post.isFriend ? 'blue' : 'yellow'}>
+                  {post.habitTitle}
+                </Badge>
+                <button
+                  onClick={() => handleShareStory(post)}
+                  aria-label="Chia sẻ Locket Story"
+                  className="p-1.5 rounded-xl bg-white dark:bg-[#23232C] brutal-border brutal-shadow-sm hover:scale-105 active:scale-95 transition-transform text-[#18181B] dark:text-[#F4F4F6]"
+                  title="Chia sẻ Locket Story"
+                >
+                  <Share2 size={14} strokeWidth={2.5} />
+                </button>
+              </div>
             </div>
 
             {/* Squircle Photo View with Retro Comic Frame */}

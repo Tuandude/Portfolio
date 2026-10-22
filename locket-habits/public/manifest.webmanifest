@@ -1,0 +1,17 @@
+{
+  "name": "Locket Habits",
+  "short_name": "LocketHabits",
+  "description": "Neo-Brutalism Retro Comic Habit Tracker with Locket Photos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121215",
+  "theme_color": "#18181B",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

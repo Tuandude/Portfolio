@@ -3,6 +3,7 @@ import { CheckSquare, Image as ImageIcon, Flame, Volume2, VolumeX, Sun, Moon } f
 import type { TimePhase, WeatherState, Habit, CheckInPost, UserProfile } from './types';
 import { StorageService } from './services/storage';
 import { SoundService } from './services/sound';
+import { NotificationService } from './services/notification';
 import { AtmosphericHeader } from './components/header/AtmosphericHeader';
 import { TasksTab } from './components/tabs/TasksTab';
 import { LocketWallTab } from './components/tabs/LocketWallTab';
@@ -18,8 +19,26 @@ export function App() {
   const [profile, setProfile] = useState<UserProfile>(StorageService.getProfile());
   const [isMuted, setIsMuted] = useState(SoundService.getMuted());
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem('locket_theme') as 'light' | 'dark') || 'light';
+    const saved = localStorage.getItem('locket_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
   });
+
+  // Handle system theme listener if user has not explicitly locked
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const listener = (e: MediaQueryListEvent) => {
+      const saved = localStorage.getItem('locket_theme_manual');
+      if (!saved) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, []);
 
   // Handle theme changes
   useEffect(() => {
@@ -44,6 +63,13 @@ export function App() {
     else if (hour >= 9 && hour < 17) setTimePhase('day');
     else if (hour >= 17 && hour < 20) setTimePhase('dusk');
     else setTimePhase('night');
+
+    // Request notification permission and check reminders every minute
+    NotificationService.requestPermission();
+    const interval = setInterval(() => {
+      NotificationService.checkAndNotifyHabits(StorageService.getHabits());
+    }, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleToggleHabit = (id: string) => {
