@@ -1,7 +1,8 @@
-// Native IndexedDB wrapper for Locket Habits image and post offline storage
+// Native IndexedDB wrapper for Locket Habits image, post and audio offline storage
 const DB_NAME = 'LocketHabitsDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'photos';
+const AUDIO_STORE_NAME = 'audios';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -15,11 +16,71 @@ function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'id' });
       }
+      if (!db.objectStoreNames.contains(AUDIO_STORE_NAME)) {
+        db.createObjectStore(AUDIO_STORE_NAME, { keyPath: 'id' });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 }
+
+export interface StoredAudio {
+  id: string;
+  dataUrl: string;
+  duration?: number;
+  createdAt: number;
+}
+
+export const AudioDB = {
+  async saveAudio(id: string, dataUrl: string, duration = 5): Promise<void> {
+    try {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(AUDIO_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(AUDIO_STORE_NAME);
+        const item: StoredAudio = { id, dataUrl, duration, createdAt: Date.now() };
+        store.put(item);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch (e) {
+      console.warn('Fallback to memory for saveAudio:', e);
+    }
+  },
+
+  async getAudio(id: string): Promise<string | null> {
+    try {
+      const db = await openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction(AUDIO_STORE_NAME, 'readonly');
+        const store = tx.objectStore(AUDIO_STORE_NAME);
+        const request = store.get(id);
+        request.onsuccess = () => {
+          resolve(request.result?.dataUrl || null);
+        };
+        request.onerror = () => resolve(null);
+      });
+    } catch {
+      return null;
+    }
+  },
+
+  async deleteAudio(id: string): Promise<void> {
+    try {
+      const db = await openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction(AUDIO_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(AUDIO_STORE_NAME);
+        store.delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      });
+    } catch {
+      // ignore
+    }
+  },
+};
 
 export interface StoredPhoto {
   id: string;

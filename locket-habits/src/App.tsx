@@ -88,7 +88,7 @@ export function App() {
     setHabits([...StorageService.getHabits()]);
   };
 
-  const handleCheckInPhoto = (habitId: string, imageUrl: string, note: string) => {
+  const handleCheckInPhoto = (habitId: string, imageUrl: string, note: string, voiceUrl?: string) => {
     const habit = habits.find((h) => h.id === habitId);
     StorageService.addPost({
       habitId,
@@ -98,6 +98,7 @@ export function App() {
       authorName: profile.name,
       authorAvatar: profile.avatar,
       isFriend: false,
+      voiceUrl,
     });
     setPosts([...StorageService.getPosts()]);
     setProfile({ ...StorageService.getProfile() });
@@ -108,12 +109,23 @@ export function App() {
     setPosts([...StorageService.getPosts()]);
   };
 
+  const handleNewFriendPost = (post: CheckInPost) => {
+    // Prepend the realtime post to the feed and refresh profile XP
+    setPosts((prev) => [post, ...prev]);
+  };
+
   const handleBuyFreeze = () => {
     const success = StorageService.buyStreakFreeze(100);
     if (success) {
       SoundService.playSuccess();
       setProfile({ ...StorageService.getProfile() });
     }
+  };
+
+  const handleDataRestored = () => {
+    setHabits([...StorageService.getHabits()]);
+    setPosts([...StorageService.getPosts()]);
+    setProfile({ ...StorageService.getProfile() });
   };
 
   const handleToggleMute = () => {
@@ -154,6 +166,9 @@ export function App() {
             <LocketWallTab
               posts={posts}
               onAddReaction={handleAddReaction}
+              profile={profile}
+              onProfileChange={setProfile}
+              onNewFriendPost={handleNewFriendPost}
             />
           )}
 
@@ -162,6 +177,7 @@ export function App() {
               profile={profile}
               habits={habits}
               onBuyFreeze={handleBuyFreeze}
+              onDataRestored={handleDataRestored}
             />
           )}
         </main>

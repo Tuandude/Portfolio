@@ -1,20 +1,42 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, X, Upload, Video, RefreshCw, Zap, Sparkles, Trash2 } from 'lucide-react';
+import {
+  Camera,
+  X,
+  Upload,
+  Video,
+  RefreshCw,
+  Zap,
+  Sparkles,
+  Trash2,
+  PenTool,
+  Mic,
+  Square,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import { Button } from '../ui/Button';
 import { SoundService } from '../../services/sound';
+import { HapticService } from '../../services/haptic';
+import { analyzeHabitPhoto, renderAIStamp } from '../../services/aiVision';
+import type { AIVerifyResult } from '../../services/aiVision';
+import {
+  DoodleCanvas,
+  type DrawingStroke,
+  type SpeechBubbleData,
+} from './DoodleCanvas';
 
 interface CameraModalProps {
   isOpen: boolean;
   onClose: () => void;
   habitTitle: string;
-  onCapture: (imageUrl: string, note: string) => void;
+  onCapture: (imageUrl: string, note: string, voiceUrl?: string) => void;
 }
 
 export type PhotoFilter = 'normal' | 'halftone' | 'comic-bw' | 'y2k' | 'cyber';
 
 interface PlacedSticker {
   id: string;
-  type: string; // text, emoji, or badge
+  type: string;
   label: string;
   x: number; // percentage (0-100)
   y: number; // percentage (0-100)
@@ -52,12 +74,31 @@ export const CameraModal: React.FC<CameraModalProps> = ({
   const [activeFilter, setActiveFilter] = useState<PhotoFilter>('normal');
   const [stickers, setStickers] = useState<PlacedSticker[]>([]);
   const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
-  const [_isEditorMode, setIsEditorMode] = useState(false);
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [strokes, setStrokes] = useState<DrawingStroke[]>([]);
+  const [bubbles, setBubbles] = useState<SpeechBubbleData[]>([]);
+
+  // Voice Note 5s states
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [voiceSecondsLeft, setVoiceSecondsLeft] = useState(5);
+  const [voiceBlobUrl, setVoiceBlobUrl] = useState<string | null>(null);
+  const [isPlayingRecordedVoice, setIsPlayingRecordedVoice] = useState(false);
+  const [hasMicPermission, setHasMicPermission] = useState<boolean | null>(null);
+
+  // AI Vision Verifier state
+  const [aiResult, setAiResult] = useState<AIVerifyResult | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  // Voice note recording refs
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<number | null>(null);
+  const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
 
   // Stop camera helper
   const stopLiveCamera = useCallback(() => {
@@ -93,7 +134,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
       setIsLiveActive(true);
       setHasCameraPermission(true);
       setPreviewUrl(null);
-      setIsEditorMode(false);
+      setIsDrawingMode(false);
     } catch {
       setHasCameraPermission(false);
       setIsLiveActive(false);
@@ -108,21 +149,32 @@ export const CameraModal: React.FC<CameraModalProps> = ({
       setPreviewUrl(null);
       setNote('');
       setStickers([]);
+      setStrokes([]);
+      setBubbles([]);
+      setIsDrawingMode(false);
       setActiveFilter('normal');
-      setIsEditorMode(false);
+      setVoiceBlobUrl(null);
+      setIsRecordingVoice(false);
+      setAiResult(null);
+      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
     }
     return () => {
       stopLiveCamera();
+      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+      if (audioPlayerRef.current) audioPlayerRef.current.pause();
     };
   }, [isOpen, facingMode, startLiveCamera, stopLiveCamera]);
 
   if (!isOpen) return null;
 
-  // Snapshot from video stream
+  // Snapshot from video stream with 150ms screen flash
   const takeSnapshot = () => {
     SoundService.playShutter();
+    HapticService.shutterClick();
     setFlashEffect(true);
-    setTimeout(() => setFlashEffect(false), 200);
+    setTimeout(() => {
+      setFlashEffect(false);
+    }, 150);
 
     if (videoRef.current) {
       const video = videoRef.current;
@@ -145,7 +197,6 @@ export const CameraModal: React.FC<CameraModalProps> = ({
 
         const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
         setPreviewUrl(dataUrl);
-        setIsEditorMode(true);
         stopLiveCamera();
       }
     }
@@ -164,7 +215,6 @@ export const CameraModal: React.FC<CameraModalProps> = ({
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
-        setIsEditorMode(true);
         stopLiveCamera();
       };
       reader.readAsDataURL(file);
@@ -202,7 +252,98 @@ export const CameraModal: React.FC<CameraModalProps> = ({
     if (selectedStickerId === id) setSelectedStickerId(null);
   };
 
-  // Render composite image with filter & stickers for publishing
+  // Voice Note 5s Handlers
+  const startVoiceRecording = async () => {
+    try {
+      SoundService.playBeep(880, 0.1);
+      audioChunksRef.current = [];
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setHasMicPermission(true);
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : 'audio/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setVoiceBlobUrl(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+        SoundService.playBeep(440, 0.1);
+      };
+
+      recorder.start();
+      setIsRecordingVoice(true);
+      setVoiceSecondsLeft(5);
+
+      let countdown = 5;
+      recordTimerRef.current = window.setInterval(() => {
+        countdown -= 1;
+        setVoiceSecondsLeft(countdown);
+        if (countdown <= 0) {
+          stopVoiceRecording();
+        }
+      }, 1000);
+    } catch {
+      setHasMicPermission(false);
+      setIsRecordingVoice(false);
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (recordTimerRef.current) {
+      clearInterval(recordTimerRef.current);
+      recordTimerRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecordingVoice(false);
+  };
+
+  const playRecordedVoice = () => {
+    if (!voiceBlobUrl) return;
+    if (isPlayingRecordedVoice) {
+      if (audioPlayerRef.current) audioPlayerRef.current.pause();
+      setIsPlayingRecordedVoice(false);
+      return;
+    }
+
+    const audio = new Audio(voiceBlobUrl);
+    audioPlayerRef.current = audio;
+    setIsPlayingRecordedVoice(true);
+    audio.play().catch(() => setIsPlayingRecordedVoice(false));
+    audio.onended = () => setIsPlayingRecordedVoice(false);
+  };
+
+  // AI Vision Verifier handler
+  const handleAIVerify = () => {
+    if (!previewUrl || isVerifying) return;
+    SoundService.playBeep(660, 0.1);
+    setIsVerifying(true);
+    // Simulate async analysis delay (200–900ms)
+    const delay = 200 + Math.floor(Math.random() * 700);
+    setTimeout(() => {
+      const result = analyzeHabitPhoto(habitTitle);
+      setAiResult(result);
+      setIsVerifying(false);
+      SoundService.playSuccess();
+      HapticService.checkboxComplete();
+    }, delay);
+  };
+
+  // Render composite image with filter, stickers, doodles and speech bubbles
   const generateFinalImage = async (): Promise<string> => {
     if (!previewUrl) return samplePhotos[0];
 
@@ -236,10 +377,8 @@ export const CameraModal: React.FC<CameraModalProps> = ({
           }
           ctx.putImageData(imgData, 0, 0);
         } else if (activeFilter === 'halftone') {
-          // Halftone color pop effect
           ctx.fillStyle = 'rgba(255, 209, 102, 0.2)';
           ctx.fillRect(0, 0, size, size);
-          // Dot grid overlay
           ctx.fillStyle = 'rgba(24, 24, 27, 0.12)';
           for (let x = 0; x < size; x += 10) {
             for (let y = 0; y < size; y += 10) {
@@ -261,7 +400,131 @@ export const CameraModal: React.FC<CameraModalProps> = ({
           ctx.strokeRect(8, 8, size - 16, size - 16);
         }
 
-        // 3. Render Stickers
+        // 3. Rasterize Freehand Doodle Strokes
+        strokes.forEach((stroke) => {
+          if (stroke.points.length < 2) return;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+          for (let i = 1; i < stroke.points.length; i++) {
+            ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+          }
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+
+          if (stroke.tool === 'pencil') {
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = stroke.color;
+            ctx.stroke();
+          } else if (stroke.tool === 'highlighter') {
+            ctx.lineWidth = 18;
+            ctx.strokeStyle = stroke.color;
+            ctx.globalAlpha = 0.45;
+            ctx.stroke();
+          } else if (stroke.tool === 'comic-ink') {
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = '#18181B';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+            for (let i = 1; i < stroke.points.length; i++) {
+              ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+            }
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = stroke.color === '#18181B' ? '#FFFFFF' : stroke.color;
+            ctx.stroke();
+          }
+          ctx.restore();
+        });
+
+        // 4. Render Speech Bubbles into composite image
+        bubbles.forEach((bbl) => {
+          ctx.save();
+          const posX = (bbl.x / 100) * size;
+          const posY = (bbl.y / 100) * size;
+          ctx.translate(posX, posY);
+
+          ctx.font = '900 18px system-ui, sans-serif';
+          const maxTextWidth = 190;
+          // Wrap text into multiple lines if needed
+          const words = bbl.text.split(' ');
+          const lines: string[] = [];
+          let currentLine = words[0] || '';
+
+          for (let i = 1; i < words.length; i++) {
+            const testLine = currentLine + ' ' + words[i];
+            if (ctx.measureText(testLine).width < maxTextWidth) {
+              currentLine = testLine;
+            } else {
+              lines.push(currentLine);
+              currentLine = words[i];
+            }
+          }
+          lines.push(currentLine);
+
+          let maxLineW = 0;
+          lines.forEach((l) => {
+            const w = ctx.measureText(l).width;
+            if (w > maxLineW) maxLineW = w;
+          });
+
+          const bubbleW = Math.max(maxLineW + 32, 110);
+          const lineHeight = 24;
+          const bubbleH = lines.length * lineHeight + 24;
+
+          // Black brutalist shadow
+          ctx.fillStyle = '#18181B';
+          ctx.beginPath();
+          ctx.roundRect(-bubbleW / 2 + 5, -bubbleH / 2 + 5, bubbleW, bubbleH, 18);
+          ctx.fill();
+
+          // Bubble background
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.roundRect(-bubbleW / 2, -bubbleH / 2, bubbleW, bubbleH, 18);
+          ctx.fill();
+
+          // Bubble border
+          ctx.strokeStyle = '#18181B';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+
+          // Speech Bubble Tail pointing down-left
+          const tailBaseX = -bubbleW / 4;
+          const tailBaseY = bubbleH / 2;
+
+          ctx.beginPath();
+          ctx.moveTo(tailBaseX - 10, tailBaseY);
+          ctx.lineTo(tailBaseX, tailBaseY + 16);
+          ctx.lineTo(tailBaseX + 10, tailBaseY);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fill();
+          ctx.strokeStyle = '#18181B';
+          ctx.lineWidth = 4;
+          ctx.stroke();
+
+          // Overwrite overlapping border to merge tail cleanly
+          ctx.beginPath();
+          ctx.moveTo(tailBaseX - 8, tailBaseY);
+          ctx.lineTo(tailBaseX + 8, tailBaseY);
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 6;
+          ctx.stroke();
+
+          // Draw Text
+          ctx.fillStyle = '#18181B';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const startTextY = -((lines.length - 1) * lineHeight) / 2;
+          lines.forEach((line, idx) => {
+            ctx.fillText(line, 0, startTextY + idx * lineHeight);
+          });
+
+          ctx.restore();
+        });
+
+        // 5. Render Stickers
         stickers.forEach((stk) => {
           ctx.save();
           const posX = (stk.x / 100) * size;
@@ -303,8 +566,8 @@ export const CameraModal: React.FC<CameraModalProps> = ({
           ctx.restore();
         });
 
-        // 4. Locket Bottom Watermark
-        ctx.fillStyle = 'rgba(24, 24, 27, 0.65)';
+        // 6. Locket Bottom Watermark
+        ctx.fillStyle = 'rgba(24, 24, 27, 0.7)';
         ctx.fillRect(0, size - 56, size, 56);
         ctx.fillStyle = '#FFFFFF';
         ctx.font = '900 20px system-ui, sans-serif';
@@ -317,6 +580,11 @@ export const CameraModal: React.FC<CameraModalProps> = ({
         ctx.fillStyle = '#FFD166';
         ctx.fillText(new Date().toLocaleDateString('vi-VN'), size - 20, size - 22);
 
+        // 7. AI Verified comic stamp (only if verification was performed)
+        if (aiResult) {
+          renderAIStamp(ctx, size, aiResult);
+        }
+
         resolve(canvas.toDataURL('image/jpeg', 0.92));
       };
       img.onerror = () => resolve(previewUrl);
@@ -327,7 +595,11 @@ export const CameraModal: React.FC<CameraModalProps> = ({
   const handleConfirm = async () => {
     SoundService.playSuccess();
     const finalImage = await generateFinalImage();
-    onCapture(finalImage, note || `Đã hoàn thành ${habitTitle}! 🎉`);
+    onCapture(
+      finalImage,
+      note || `Đã hoàn thành ${habitTitle}! 🎉`,
+      voiceBlobUrl || undefined
+    );
     stopLiveCamera();
     onClose();
   };
@@ -386,9 +658,9 @@ export const CameraModal: React.FC<CameraModalProps> = ({
             }}
           />
 
-          {/* Flash animation */}
+          {/* Screen Flash animation (150ms studio flash) */}
           {flashEffect && (
-            <div className="absolute inset-0 bg-white z-50 pointer-events-none animate-ping" />
+            <div className="absolute inset-0 bg-white z-50 pointer-events-none transition-opacity duration-150 opacity-100" />
           )}
 
           {/* Captured Preview Mode with Stickers and Filters */}
@@ -411,6 +683,17 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                   }}
                 />
               )}
+
+              {/* Freehand Doodle & Speech Bubble Canvas Overlay */}
+              <DoodleCanvas
+                width={640}
+                height={640}
+                strokes={strokes}
+                onStrokesChange={setStrokes}
+                bubbles={bubbles}
+                onBubblesChange={setBubbles}
+                isDrawingMode={isDrawingMode}
+              />
 
               {/* Render Draggable / Tappable Stickers */}
               {stickers.map((stk) => {
@@ -451,10 +734,10 @@ export const CameraModal: React.FC<CameraModalProps> = ({
               })}
 
               {/* Bottom Locket Timestamp Watermark */}
-              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white px-4 py-3 flex justify-between items-end text-xs font-black z-20 pointer-events-none">
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white px-4 py-3 flex justify-between items-end text-xs font-black z-10 pointer-events-none">
                 <span className="drop-shadow-[1px_1px_0px_#18181B]">⚡ {habitTitle}</span>
                 <span className="text-[#FFD166] text-[10px] font-black tracking-wider uppercase drop-shadow-[1px_1px_0px_#18181B]">
-                  LOCKET V2.0
+                  LOCKET COMIC CAM
                 </span>
               </div>
             </div>
@@ -512,7 +795,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                   onClick={() => {
                     SoundService.playClick();
                     setPreviewUrl(samplePhotos[Math.floor(Math.random() * samplePhotos.length)]);
-                    setIsEditorMode(true);
+                    stopLiveCamera();
                   }}
                 >
                   Dùng ảnh mẫu
@@ -538,36 +821,135 @@ export const CameraModal: React.FC<CameraModalProps> = ({
         </div>
 
         {/* BOTTOM CONTROLS DECK */}
-        <div className="bg-[#FDFBF7] dark:bg-[#1A1A20] p-4 flex flex-col gap-3 transition-colors border-t-2 border-black/10 dark:border-white/10">
+        <div className="bg-[#FDFBF7] dark:bg-[#1A1A20] p-3.5 flex flex-col gap-2.5 transition-colors border-t-2 border-black/10 dark:border-white/10 max-h-[290px] overflow-y-auto">
           {previewUrl ? (
             /* EDIT & SUBMIT CONTROLS */
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2.5">
+              {/* Tool Selector Bar: Doodle mode toggle & Voice Note */}
+              <div className="flex items-center justify-between gap-1.5 bg-white dark:bg-[#23232C] p-1.5 rounded-xl brutal-border">
+                {/* Toggle Doodle Mode */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    SoundService.playClick();
+                    setIsDrawingMode(!isDrawingMode);
+                  }}
+                  className={`flex-1 py-1 px-2 rounded-lg text-xs font-black flex items-center justify-center gap-1 cursor-pointer transition-all ${
+                    isDrawingMode
+                      ? 'bg-[#FF6B8B] text-white brutal-border brutal-shadow-sm'
+                      : 'text-[#18181B] dark:text-[#F4F4F6] hover:bg-gray-100 dark:hover:bg-[#2C2C38]'
+                  }`}
+                >
+                  <PenTool size={14} /> {isDrawingMode ? 'Đang Vẽ ✏️' : 'Vẽ Doodle 🎨'}
+                </button>
+
+                {/* 5s Voice Note Trigger */}
+                {hasMicPermission === false ? (
+                  <span className="text-[10px] text-red-400 font-bold px-1">
+                    Chặn micro
+                  </span>
+                ) : isRecordingVoice ? (
+                  <button
+                    type="button"
+                    onClick={stopVoiceRecording}
+                    className="flex-1 py-1 px-2 rounded-lg text-xs font-black bg-red-600 text-white animate-pulse brutal-border flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Square size={12} fill="white" /> Dừng ({voiceSecondsLeft}s)
+                  </button>
+                ) : voiceBlobUrl ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={playRecordedVoice}
+                      className="py-1 px-2.5 rounded-lg text-xs font-black bg-[#52B788] text-white brutal-border flex items-center gap-1 cursor-pointer"
+                    >
+                      {isPlayingRecordedVoice ? <VolumeX size={13} /> : <Volume2 size={13} />} Nghe lại
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVoiceBlobUrl(null)}
+                      className="p-1 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-black cursor-pointer"
+                      title="Ghi âm lại"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startVoiceRecording}
+                    className="flex-1 py-1 px-2 rounded-lg text-xs font-black bg-[#3A86FF] text-white brutal-border flex items-center justify-center gap-1 cursor-pointer hover:bg-blue-600"
+                  >
+                    <Mic size={14} /> Voice 5s 🎙️
+                  </button>
+                )}
+              </div>
+
+              {/* AI Vision Verifier */}
+              <div className="flex flex-col gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleAIVerify}
+                  disabled={isVerifying}
+                  className={`w-full py-1.5 px-3 rounded-xl brutal-border text-xs font-black flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    aiResult
+                      ? aiResult.stamp === 'verified'
+                        ? 'bg-[#52B788] text-white brutal-shadow-sm'
+                        : 'bg-[#FFD166] text-[#18181B] brutal-shadow-sm'
+                      : 'bg-[#9B5DE5] text-white hover:bg-purple-700'
+                  } disabled:opacity-60 disabled:cursor-not-allowed`}
+                >
+                  {isVerifying ? (
+                    <>
+                      <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      AI đang phân tích...
+                    </>
+                  ) : aiResult ? (
+                    <>
+                      {aiResult.stamp === 'verified' ? '✓' : '~'} AI {aiResult.confidence}% xác nhận — Chạm để xác nhận lại
+                    </>
+                  ) : (
+                    <>
+                      🤖 Xác Nhận Bằng AI Vision
+                    </>
+                  )}
+                </button>
+
+                {/* AI comment speech bubble */}
+                {aiResult && !isVerifying && (
+                  <div className="px-3 py-2 bg-[#FFF3B0] dark:bg-[#2A2617] brutal-border rounded-xl text-[11px] font-black text-[#18181B] dark:text-[#FFD166] leading-relaxed">
+                    💬 {aiResult.comment}
+                  </div>
+                )}
+              </div>
+
               {/* Filter Selector Strip */}
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-[11px] font-black uppercase text-[#18181B] dark:text-[#F4F4F6] flex items-center gap-1">
-                    <Sparkles size={12} className="text-[#FF6B8B]" /> Bộ Lọc Retro Comic
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-black uppercase text-[#18181B] dark:text-[#F4F4F6] flex items-center gap-1">
+                    <Sparkles size={11} className="text-[#FF6B8B]" /> Bộ Lọc Comic
                   </span>
-                  <span className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase">{activeFilter}</span>
+                  <span className="text-[9px] font-black text-gray-500 uppercase">{activeFilter}</span>
                 </div>
-                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <div className="flex gap-1.5 overflow-x-auto pb-0.5">
                   {(['normal', 'halftone', 'comic-bw', 'y2k', 'cyber'] as PhotoFilter[]).map((f) => (
                     <button
                       key={f}
+                      type="button"
                       onClick={() => {
                         SoundService.playClick();
                         setActiveFilter(f);
                       }}
-                      className={`px-3 py-1 rounded-xl text-[11px] font-black whitespace-nowrap brutal-border transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-xl text-[10px] font-black whitespace-nowrap brutal-border transition-all cursor-pointer ${
                         activeFilter === f
                           ? 'bg-[#FFD166] brutal-shadow-sm text-[#18181B]'
-                          : 'bg-white dark:bg-[#23232C] text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2C2C38]'
+                          : 'bg-white dark:bg-[#23232C] text-gray-600 dark:text-gray-300'
                       }`}
                     >
                       {f === 'normal' && 'Gốc 📸'}
                       {f === 'halftone' && 'Halftone 🟡'}
                       {f === 'comic-bw' && 'Comic B&W 🖤'}
-                      {f === 'y2k' && 'Y2K Cam 🌸'}
+                      {f === 'y2k' && 'Y2K 🌸'}
                       {f === 'cyber' && 'Cyber ⚡'}
                     </button>
                   ))}
@@ -576,30 +958,32 @@ export const CameraModal: React.FC<CameraModalProps> = ({
 
               {/* Sticker Selector Strip */}
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <span className="text-[11px] font-black uppercase text-[#18181B] dark:text-[#F4F4F6] flex items-center gap-1">
-                    <Zap size={12} className="text-[#3A86FF]" /> Dán Sticker Comic ({stickers.length})
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-black uppercase text-[#18181B] dark:text-[#F4F4F6] flex items-center gap-1">
+                    <Zap size={11} className="text-[#3A86FF]" /> Sticker ({stickers.length})
                   </span>
                   {stickers.length > 0 && (
                     <button
+                      type="button"
                       onClick={() => {
                         SoundService.playClick();
                         setStickers([]);
                         setSelectedStickerId(null);
                       }}
-                      className="text-[10px] font-black text-red-500 hover:underline flex items-center gap-0.5 cursor-pointer"
+                      className="text-[9px] font-black text-red-500 hover:underline flex items-center gap-0.5 cursor-pointer"
                     >
-                      <Trash2 size={10} /> Xóa hết
+                      <Trash2 size={9} /> Xóa
                     </button>
                   )}
                 </div>
-                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <div className="flex gap-1.5 overflow-x-auto pb-0.5">
                   {STICKER_PRESETS.map((preset) => (
                     <button
                       key={preset.id}
+                      type="button"
                       onClick={() => addSticker(preset)}
                       style={{ backgroundColor: preset.bg, color: preset.color }}
-                      className="px-2.5 py-1 rounded-xl text-[11px] font-black brutal-border whitespace-nowrap brutal-shadow-sm hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-black brutal-border whitespace-nowrap brutal-shadow-sm hover:scale-105 active:scale-95 cursor-pointer"
                     >
                       {preset.label}
                     </button>
@@ -613,29 +997,36 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                 placeholder="Viết caption cho bạn bè..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="w-full px-3.5 py-2 bg-white dark:bg-[#23232C] dark:text-white brutal-border rounded-xl text-sm font-bold placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none"
+                className="w-full px-3 py-1.5 bg-white dark:bg-[#23232C] dark:text-white brutal-border rounded-xl text-xs font-bold placeholder:text-gray-400 focus:outline-none"
               />
 
               {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button
+                  size="sm"
                   variant="secondary"
                   className="flex-1"
                   onClick={() => {
                     SoundService.playClick();
                     setStickers([]);
+                    setStrokes([]);
+                    setBubbles([]);
+                    setIsDrawingMode(false);
                     setActiveFilter('normal');
+                    setVoiceBlobUrl(null);
+                    setAiResult(null);
                     startLiveCamera(facingMode);
                   }}
                 >
-                  <RefreshCw size={14} className="mr-1" /> Chụp Lại
+                  <RefreshCw size={13} className="mr-1" /> Chụp Lại
                 </Button>
                 <Button
+                  size="sm"
                   variant="pink"
                   className="flex-2"
                   onClick={handleConfirm}
                 >
-                  Gửi Lên Locket (+15 XP) 🚀
+                  Gửi Locket (+15 XP) 🚀
                 </Button>
               </div>
             </div>
@@ -643,7 +1034,7 @@ export const CameraModal: React.FC<CameraModalProps> = ({
             /* LIVE SHOOTING DOCK (True Locket Camera Feel) */
             <div className="flex flex-col gap-3 py-1">
               <div className="flex items-center justify-around px-2">
-                {/* Switch Camera facing */}
+                {/* Switch Camera facing (User / Environment) */}
                 <button
                   type="button"
                   onClick={toggleCameraFacing}
@@ -683,9 +1074,9 @@ export const CameraModal: React.FC<CameraModalProps> = ({
                   onClick={() => {
                     SoundService.playClick();
                     setPreviewUrl(samplePhotos[Math.floor(Math.random() * samplePhotos.length)]);
-                    setIsEditorMode(true);
+                    stopLiveCamera();
                   }}
-                  className="text-[11px] font-black text-gray-500 hover:text-[#18181B] uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] font-black text-gray-500 hover:text-[#18181B] dark:hover:text-white uppercase tracking-wider flex items-center gap-1 cursor-pointer"
                 >
                   <Sparkles size={12} className="text-[#FFD166]" /> Hoặc thử với ảnh mẫu demo
                 </button>

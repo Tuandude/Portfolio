@@ -13,7 +13,7 @@ interface TasksTabProps {
   habits: Habit[];
   onToggleHabit: (id: string) => void;
   onAddHabit: (title: string, category: Habit['category'], icon: string) => void;
-  onCheckInPhoto: (habitId: string, imageUrl: string, note: string) => void;
+  onCheckInPhoto: (habitId: string, imageUrl: string, note: string, voiceUrl?: string) => void;
 }
 
 export const TasksTab: React.FC<TasksTabProps> = ({
@@ -159,8 +159,8 @@ export const TasksTab: React.FC<TasksTabProps> = ({
           isOpen={Boolean(selectedHabitForCamera)}
           onClose={() => setSelectedHabitForCamera(null)}
           habitTitle={selectedHabitForCamera.title}
-          onCapture={(img, note) => {
-            onCheckInPhoto(selectedHabitForCamera.id, img, note);
+          onCapture={(img, note, voiceUrl) => {
+            onCheckInPhoto(selectedHabitForCamera.id, img, note, voiceUrl);
             if (!selectedHabitForCamera.completedToday) {
               onToggleHabit(selectedHabitForCamera.id);
             }

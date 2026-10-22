@@ -128,6 +128,27 @@ class SoundEffectService {
     osc.start();
     osc.stop(ctx.currentTime + 0.06);
   }
+
+  // Record beep sound (start/stop)
+  playBeep(freq = 660, duration = 0.08) {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  }
 }
 
 export const SoundService = new SoundEffectService();

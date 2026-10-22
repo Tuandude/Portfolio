@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 import { SoundService } from '../../services/sound';
+import { HapticService } from '../../services/haptic';
 
 interface CheckboxProps {
   checked: boolean;
@@ -18,7 +19,11 @@ export const BrutalCheckbox: React.FC<CheckboxProps> = ({
   const sizeClasses = size === 'lg' ? 'w-8 h-8' : 'w-6 h-6';
 
   const handleClick = () => {
-    SoundService.playClick();
+    if (!checked) {
+      HapticService.checkboxComplete();
+    } else {
+      SoundService.playClick();
+    }
     onChange(!checked);
   };
 

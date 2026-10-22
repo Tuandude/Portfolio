@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
-import { Flame, ShoppingBag, Snowflake, Zap, CheckCircle2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Flame, ShoppingBag, Snowflake, Zap, CheckCircle2, Download, Upload } from 'lucide-react';
 import type { UserProfile, Habit } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { BackupService } from '../../services/backup';
+import { SoundService } from '../../services/sound';
+import { HapticService } from '../../services/haptic';
 
 interface StreakTabProps {
   profile: UserProfile;
   habits: Habit[];
   onBuyFreeze: () => void;
+  onDataRestored?: () => void;
 }
 
 export const StreakTab: React.FC<StreakTabProps> = ({
   profile,
   habits: _habits,
   onBuyFreeze,
+  onDataRestored,
 }) => {
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [backupMessage, setBackupMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   // Generate 7-day calendar for current week
   const daysOfWeek = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -25,6 +34,47 @@ export const StreakTab: React.FC<StreakTabProps> = ({
     onBuyFreeze();
     setPurchaseSuccess(true);
     setTimeout(() => setPurchaseSuccess(false), 2000);
+  };
+
+  const handleExport = async () => {
+    SoundService.playSuccess();
+    setIsExporting(true);
+    setBackupMessage(null);
+    try {
+      await BackupService.exportBackup();
+      setBackupMessage({ type: 'ok', text: 'Đã tải file sao lưu về máy!' });
+    } catch (err) {
+      setBackupMessage({ type: 'error', text: `Lỗi xuất dữ liệu: ${String(err)}` });
+      HapticService.error();
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    setBackupMessage(null);
+    try {
+      const err = await BackupService.importBackup(file);
+      if (err) {
+        setBackupMessage({ type: 'error', text: err });
+        HapticService.error();
+      } else {
+        SoundService.playSuccess();
+        HapticService.checkboxComplete();
+        setBackupMessage({ type: 'ok', text: 'Phục hồi thành công! Ứng dụng sẽ tải lại...' });
+        // Reload app state via callback; give user 1.5s to read message
+        setTimeout(() => {
+          if (onDataRestored) onDataRestored();
+        }, 1500);
+      }
+    } finally {
+      setIsImporting(false);
+      // Reset input so the same file can be re-imported
+      if (importInputRef.current) importInputRef.current.value = '';
+    }
   };
 
   return (
@@ -241,6 +291,63 @@ export const StreakTab: React.FC<StreakTabProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Export / Import Backup Panel */}
+      <div className="bg-white dark:bg-[#1A1A20] rounded-3xl brutal-border-3 brutal-shadow p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Download size={20} className="text-[#18181B] dark:text-[#F4F4F6]" strokeWidth={2.5} />
+          <h3 className="font-black text-sm text-[#18181B] dark:text-[#F4F4F6] uppercase tracking-wide">
+            Sao Lưu & Phục Hồi 💾
+          </h3>
+        </div>
+
+        <p className="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+          Xuất toàn bộ Thói Quen, Ảnh Check-in, Voice Note và Profile ra file JSON để
+          sao lưu hoặc chuyển sang thiết bị khác.
+        </p>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-[#52B788] text-white brutal-border brutal-shadow-sm rounded-xl font-black text-xs cursor-pointer hover:bg-green-600 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <Download size={14} />
+            {isExporting ? 'Đang xuất...' : 'Xuất JSON'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => importInputRef.current?.click()}
+            disabled={isImporting}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-[#3A86FF] text-white brutal-border brutal-shadow-sm rounded-xl font-black text-xs cursor-pointer hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <Upload size={14} />
+            {isImporting ? 'Đang nhập...' : 'Nhập JSON'}
+          </button>
+        </div>
+
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".json,application/json"
+          onChange={handleImportFile}
+          className="hidden"
+        />
+
+        {backupMessage && (
+          <p
+            className={`mt-3 text-xs font-black rounded-xl brutal-border p-2.5 text-center ${
+              backupMessage.type === 'ok'
+                ? 'bg-[#D8F3DC] dark:bg-[#153426] text-green-800 dark:text-green-300'
+                : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300'
+            }`}
+          >
+            {backupMessage.text}
+          </p>
+        )}
       </div>
     </div>
   );

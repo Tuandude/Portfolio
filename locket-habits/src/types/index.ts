@@ -25,6 +25,8 @@ export interface CheckInPost {
   authorAvatar: string;
   isFriend: boolean;
   reactions: Record<string, number>;
+  voiceUrl?: string;
+  hasVoiceNote?: boolean;
 }
 
 export interface UserProfile {
@@ -35,4 +37,8 @@ export interface UserProfile {
   currentStreak: number;
   bestStreak: number;
   lastActiveDate: string;
+  /** 6-character invite code of the form LK-XXXX, generated once and persisted */
+  inviteCode: string;
+  /** Invite codes of connected friends */
+  friendCodes: string[];
 }

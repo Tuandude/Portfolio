@@ -1,9 +1,19 @@
 import type { Habit, CheckInPost, UserProfile } from '../types';
-import { PhotoDB } from './db';
+import { PhotoDB, AudioDB } from './db';
 
 const HABITS_KEY = 'locket_habits_data';
 const POSTS_KEY = 'locket_posts_data';
 const PROFILE_KEY = 'locket_user_profile';
+
+/** Generate a random 6-character invite code of the form LK-XXXX */
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'LK-';
+  for (let i = 0; i < 4; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
 
 const DEFAULT_PROFILE: UserProfile = {
   name: 'Alex Nguyễn',
@@ -13,6 +23,8 @@ const DEFAULT_PROFILE: UserProfile = {
   currentStreak: 5,
   bestStreak: 12,
   lastActiveDate: new Date().toISOString().split('T')[0],
+  inviteCode: generateInviteCode(),
+  friendCodes: [],
 };
 
 const DEFAULT_HABITS: Habit[] = [
@@ -78,6 +90,7 @@ const DEFAULT_POSTS: CheckInPost[] = [
     authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     isFriend: false,
     reactions: { '🔥': 4, '👏': 2, '❤️': 5 },
+    hasVoiceNote: true,
   },
   {
     id: 'p2',
@@ -109,7 +122,21 @@ export const StorageService = {
   getProfile(): UserProfile {
     try {
       const data = localStorage.getItem(PROFILE_KEY);
-      return data ? JSON.parse(data) : DEFAULT_PROFILE;
+      const profile: UserProfile = data ? JSON.parse(data) : DEFAULT_PROFILE;
+      // Backfill invite code for existing users who pre-date this field
+      let dirty = false;
+      if (!profile.inviteCode) {
+        profile.inviteCode = generateInviteCode();
+        dirty = true;
+      }
+      if (!Array.isArray(profile.friendCodes)) {
+        profile.friendCodes = [];
+        dirty = true;
+      }
+      if (dirty) {
+        localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+      }
+      return profile;
     } catch {
       return DEFAULT_PROFILE;
     }
@@ -196,11 +223,17 @@ export const StorageService = {
       PhotoDB.savePhoto(postId, post.imageUrl);
     }
 
+    // Persist voice audio to IndexedDB if present
+    if (post.voiceUrl && post.voiceUrl.startsWith('data:audio')) {
+      AudioDB.saveAudio(postId, post.voiceUrl);
+    }
+
     const newPost: CheckInPost = {
       ...post,
       id: postId,
       timestamp: 'Vừa xong',
       reactions: { '❤️': 1 },
+      hasVoiceNote: Boolean(post.voiceUrl || post.hasVoiceNote),
     };
     posts.unshift(newPost);
     localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
@@ -232,5 +265,28 @@ export const StorageService = {
       return true;
     }
     return false;
+  },
+
+  /**
+   * Add a friend's invite code to the profile's friendCodes list.
+   * Returns false if the code is already in the list or matches the user's own code.
+   */
+  addFriendCode(code: string): boolean {
+    const profile = this.getProfile();
+    const normalized = code.trim().toUpperCase();
+    if (!normalized || normalized === profile.inviteCode) return false;
+    if (profile.friendCodes.includes(normalized)) return false;
+    profile.friendCodes = [...profile.friendCodes, normalized];
+    this.saveProfile(profile);
+    return true;
+  },
+
+  /**
+   * Remove a friend's invite code from the profile.
+   */
+  removeFriendCode(code: string): void {
+    const profile = this.getProfile();
+    profile.friendCodes = profile.friendCodes.filter((c) => c !== code);
+    this.saveProfile(profile);
   },
 };
