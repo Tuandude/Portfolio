@@ -39,3 +39,5 @@ describe('HapticService', () => {
     expect(() => HapticService.error()).not.toThrow();
   });
 });
+
+

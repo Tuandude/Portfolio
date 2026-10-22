@@ -344,11 +344,17 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                 {/* Voice Note Comic Badge & Soundwave Overlay */}
                 {hasVoice && (
                   <div className="absolute top-3 right-3 z-20 flex items-center gap-2">
-                    <div
-                      className={`px-3 py-1.5 rounded-full brutal-border flex items-center gap-1.5 brutal-shadow-sm transition-all ${
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleVoicePlayback(post);
+                      }}
+                      title={isAudioPlaying ? 'Dừng phát Voice Note' : 'Phát Voice Note 5s'}
+                      className={`px-3 py-1.5 rounded-full brutal-border flex items-center gap-1.5 brutal-shadow-sm transition-all cursor-pointer ${
                         isAudioPlaying
                           ? 'bg-[#00F0FF] text-[#18181B] scale-105 ring-2 ring-white animate-pulse'
-                          : 'bg-[#18181B]/85 text-white'
+                          : 'bg-[#18181B]/85 hover:bg-[#18181B] text-white hover:scale-105'
                       }`}
                     >
                       {isAudioPlaying ? (
@@ -383,7 +389,7 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                           }`}
                         />
                       </div>
-                    </div>
+                    </button>
                   </div>
                 )}
 
