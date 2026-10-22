@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { CheckSquare, Image as ImageIcon, Flame, Volume2, VolumeX, Sun, Moon } from 'lucide-react';
-import type { TimePhase, WeatherState, Habit, CheckInPost, UserProfile } from './types';
+import type { Habit, CheckInPost, UserProfile } from './types';
 import { StorageService } from './services/storage';
 import { SoundService } from './services/sound';
 import { NotificationService } from './services/notification';
+import { CloudSyncService } from './services/cloudSync';
 import { AtmosphericHeader } from './components/header/AtmosphericHeader';
 import { TasksTab } from './components/tabs/TasksTab';
 import { LocketWallTab } from './components/tabs/LocketWallTab';
@@ -11,8 +12,6 @@ import { StreakTab } from './components/tabs/StreakTab';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'locket' | 'streak'>('tasks');
-  const [timePhase, setTimePhase] = useState<TimePhase>('day');
-  const [weather, setWeather] = useState<WeatherState>('clear');
 
   const [habits, setHabits] = useState<Habit[]>([]);
   const [posts, setPosts] = useState<CheckInPost[]>([]);
@@ -51,31 +50,48 @@ export function App() {
     localStorage.setItem('locket_theme', theme);
   }, [theme]);
 
-  // Load data on start
+  // Load local data and kick off the initial Cloud Sync Down on mount
   useEffect(() => {
     setHabits(StorageService.getHabits());
     setPosts(StorageService.getPosts());
     setProfile(StorageService.getProfile());
 
-    // Determine initial time phase based on current local hour
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 9) setTimePhase('dawn');
-    else if (hour >= 9 && hour < 17) setTimePhase('day');
-    else if (hour >= 17 && hour < 20) setTimePhase('dusk');
-    else setTimePhase('night');
-
     // Request notification permission and check reminders every minute
     NotificationService.requestPermission();
-    const interval = setInterval(() => {
+    const notifInterval = setInterval(() => {
       NotificationService.checkAndNotifyHabits(StorageService.getHabits());
     }, 60000);
-    return () => clearInterval(interval);
+
+    // Sync Down: pull latest data from Supabase and merge into local state
+    CloudSyncService.syncDown().then(() => {
+      setHabits([...StorageService.getHabits()]);
+      setPosts([...StorageService.getPosts()]);
+      setProfile({ ...StorageService.getProfile() });
+    });
+
+    // Periodic Sync Down every 5 minutes to stay current with remote changes
+    const syncInterval = setInterval(() => {
+      CloudSyncService.syncDown().then(() => {
+        setHabits([...StorageService.getHabits()]);
+        setPosts([...StorageService.getPosts()]);
+        setProfile({ ...StorageService.getProfile() });
+      });
+    }, 5 * 60 * 1000);
+
+    return () => {
+      clearInterval(notifInterval);
+      clearInterval(syncInterval);
+    };
   }, []);
 
   const handleToggleHabit = (id: string) => {
     StorageService.toggleHabit(id);
-    setHabits([...StorageService.getHabits()]);
-    setProfile({ ...StorageService.getProfile() });
+    const updatedHabits = StorageService.getHabits();
+    const updatedProfile = StorageService.getProfile();
+    setHabits([...updatedHabits]);
+    setProfile({ ...updatedProfile });
+    // Sync Up: push habit and profile changes to Supabase in background
+    CloudSyncService.syncUp({ habits: updatedHabits, profile: updatedProfile });
   };
 
   const handleAddHabit = (title: string, category: Habit['category'], icon: string) => {
@@ -85,12 +101,15 @@ export function App() {
       icon,
       targetDaysPerWeek: 7,
     });
-    setHabits([...StorageService.getHabits()]);
+    const updatedHabits = StorageService.getHabits();
+    setHabits([...updatedHabits]);
+    // Sync Up: push new habit list to Supabase in background
+    CloudSyncService.syncUp({ habits: updatedHabits });
   };
 
   const handleCheckInPhoto = (habitId: string, imageUrl: string, note: string, voiceUrl?: string) => {
     const habit = habits.find((h) => h.id === habitId);
-    StorageService.addPost({
+    const newPost = StorageService.addPost({
       habitId,
       habitTitle: habit ? habit.title : 'Check-in thói quen',
       imageUrl,
@@ -100,8 +119,12 @@ export function App() {
       isFriend: false,
       voiceUrl,
     });
-    setPosts([...StorageService.getPosts()]);
-    setProfile({ ...StorageService.getProfile() });
+    const updatedPosts = StorageService.getPosts();
+    const updatedProfile = StorageService.getProfile();
+    setPosts([...updatedPosts]);
+    setProfile({ ...updatedProfile });
+    // Sync Up: push new post and updated profile to Supabase in background
+    CloudSyncService.syncUp({ post: newPost, profile: updatedProfile });
   };
 
   const handleAddReaction = (postId: string, emoji: string) => {
@@ -118,14 +141,11 @@ export function App() {
     const success = StorageService.buyStreakFreeze(100);
     if (success) {
       SoundService.playSuccess();
-      setProfile({ ...StorageService.getProfile() });
+      const updatedProfile = StorageService.getProfile();
+      setProfile({ ...updatedProfile });
+      // Sync Up: push updated profile (XP + freeze count) to Supabase in background
+      CloudSyncService.syncUp({ profile: updatedProfile });
     }
-  };
-
-  const handleDataRestored = () => {
-    setHabits([...StorageService.getHabits()]);
-    setPosts([...StorageService.getPosts()]);
-    setProfile({ ...StorageService.getProfile() });
   };
 
   const handleToggleMute = () => {
@@ -143,12 +163,12 @@ export function App() {
     <div className={`min-h-screen ${theme === 'dark' ? 'dark' : ''} bg-[var(--bg-paper)] text-[#18181B] dark:text-[#F4F4F6] flex justify-center selection:bg-[#FFD166] transition-colors duration-200`}>
       {/* Mobile Frame Container */}
       <div className="w-full max-w-md min-h-screen flex flex-col px-4 pt-3 pb-8 relative">
-        {/* Sky Header */}
+        {/* Daily Focus Header */}
         <AtmosphericHeader
-          timePhase={timePhase}
-          weather={weather}
-          onTimeChange={setTimePhase}
-          onWeatherChange={setWeather}
+          habits={habits}
+          posts={posts}
+          currentTab={activeTab}
+          onTabChange={setActiveTab}
         />
 
         {/* Dynamic Content Views */}
@@ -176,8 +196,9 @@ export function App() {
             <StreakTab
               profile={profile}
               habits={habits}
+              posts={posts}
               onBuyFreeze={handleBuyFreeze}
-              onDataRestored={handleDataRestored}
+              onProfileChange={setProfile}
             />
           )}
         </main>

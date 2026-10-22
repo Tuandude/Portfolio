@@ -256,6 +256,64 @@ export const StorageService = {
     return post;
   },
 
+  addCameoReaction(
+    postId: string,
+    cameo: { authorName: string; avatarUrl: string; selfieUrl: string }
+  ): CheckInPost | null {
+    const posts = this.getPosts();
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return null;
+
+    if (!post.cameoReactions) {
+      post.cameoReactions = [];
+    }
+
+    const newCameo = {
+      id: 'cameo_' + Date.now(),
+      authorName: cameo.authorName,
+      avatarUrl: cameo.avatarUrl,
+      selfieUrl: cameo.selfieUrl,
+      timestamp: new Date().toISOString(),
+    };
+
+    post.cameoReactions.push(newCameo);
+    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+    return post;
+  },
+
+  setDuoBond(bond: import('../types').DuoBond | null): void {
+    const profile = this.getProfile();
+    profile.duoBond = bond;
+    this.saveProfile(profile);
+  },
+
+  sendNudge(friendCode: string): void {
+    const sentKey = 'locket_sent_nudges';
+    const existing = JSON.parse(localStorage.getItem(sentKey) || '{}');
+    existing[friendCode] = Date.now();
+    localStorage.setItem(sentKey, JSON.stringify(existing));
+  },
+
+  getIncomingNudge(): { fromName: string; timestamp: number } | null {
+    const nudgeKey = 'locket_incoming_nudge';
+    const raw = localStorage.getItem(nudgeKey);
+    if (!raw) return null;
+    try {
+      const data = JSON.parse(raw);
+      if (Date.now() - data.timestamp < 3600000) {
+        return data;
+      }
+      localStorage.removeItem(nudgeKey);
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  clearIncomingNudge(): void {
+    localStorage.removeItem('locket_incoming_nudge');
+  },
+
   buyStreakFreeze(cost: number = 100): boolean {
     const profile = this.getProfile();
     if (profile.xp >= cost) {

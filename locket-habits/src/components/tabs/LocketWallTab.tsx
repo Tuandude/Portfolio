@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Volume2, Mic, Users } from 'lucide-react';
+import { Share2, Volume2, Mic, Users, Camera } from 'lucide-react';
 import type { CheckInPost, UserProfile } from '../../types';
 import { Badge } from '../ui/Badge';
 import { SoundService } from '../../services/sound';
 import { AudioDB } from '../../services/db';
 import { HapticService } from '../../services/haptic';
+import { StorageService } from '../../services/storage';
 import { supabase, isSupabaseConfigured } from '../../services/supabase';
 import { FriendsInvitePanel } from './FriendsInvitePanel';
+import { CameoModal } from './CameoModal';
 
 interface LocketWallTabProps {
   posts: CheckInPost[];
@@ -35,6 +37,8 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
   const [playingAudioPostId, setPlayingAudioPostId] = useState<string | null>(null);
   const [newPostIds, setNewPostIds] = useState<Set<string>>(new Set());
   const [showFriendsPanel, setShowFriendsPanel] = useState(false);
+  const [cameoTargetPost, setCameoTargetPost] = useState<CheckInPost | null>(null);
+  const [activeSelfieZoom, setActiveSelfieZoom] = useState<string | null>(null);
 
   const audioPlayerRef = useRef<HTMLAudioElement | null>(null);
   const synthIntervalRef = useRef<number | null>(null);
@@ -385,7 +389,7 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
 
                 {/* Caption Overlay */}
                 {post.note && (
-                  <div className="absolute bottom-3 inset-x-3 bg-[#18181B]/85 dark:bg-[#121215]/90 backdrop-blur-md text-white font-black text-xs p-3 rounded-2xl brutal-border dark:border-[#2E2E38] shadow-md flex justify-between items-center">
+                  <div className="absolute bottom-3 inset-x-3 bg-[#18181B]/85 dark:bg-[#121215]/90 backdrop-blur-md text-white font-black text-xs p-3 rounded-2xl brutal-border dark:border-[#2E2E38] shadow-md flex justify-between items-center z-10">
                     <div className="flex items-center gap-1.5 overflow-hidden">
                       <span className="text-[#FFD166] flex-shrink-0">💬</span>
                       <span className="truncate">{post.note}</span>
@@ -395,6 +399,27 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                         {isAudioPlaying ? '🔊 Chạm để ngưng' : '🎙️ Chạm để nghe'}
                       </span>
                     )}
+                  </div>
+                )}
+
+                {/* Overlaid Circular Cameo Reactions (BeReal / Locket Style) */}
+                {post.cameoReactions && post.cameoReactions.length > 0 && (
+                  <div className="absolute top-3 left-3 z-20 flex items-center -space-x-3">
+                    {post.cameoReactions.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          SoundService.playPop();
+                          setActiveSelfieZoom(c.selfieUrl);
+                        }}
+                        className="relative w-11 h-11 rounded-full overflow-hidden brutal-border-2 dark:border-white shadow-md hover:scale-110 active:scale-95 transition-transform bg-black cursor-pointer"
+                        title={`${c.authorName} phản hồi biểu cảm`}
+                      >
+                        <img src={c.selfieUrl} alt={c.authorName} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -419,6 +444,19 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
                       </button>
                     );
                   })}
+
+                  {/* Cameo Selfie Button */}
+                  <button
+                    onClick={() => {
+                      SoundService.playClick();
+                      setCameoTargetPost(post);
+                    }}
+                    className="px-2.5 py-1 rounded-xl bg-[#FFE5D9] dark:bg-[#2C1D18] hover:bg-[#FF6B8B] hover:text-white border border-[#18181B] dark:border-[#4A322B] flex items-center gap-1 font-black text-xs active:scale-90 transition-all cursor-pointer text-[#18181B] dark:text-[#F4F4F6]"
+                    title="Bắn selfie phản hồi Cameo"
+                  >
+                    <Camera size={13} strokeWidth={2.5} />
+                    <span className="text-[10px]">Cameo</span>
+                  </button>
                 </div>
 
                 <span className="text-[10px] font-black uppercase text-gray-400 dark:text-gray-500 tracking-wider">
@@ -453,6 +491,44 @@ export const LocketWallTab: React.FC<LocketWallTabProps> = ({
           ))}
         </AnimatePresence>
       </div>
+      {/* Cameo Selfie Modal */}
+      {cameoTargetPost && (
+        <CameoModal
+          isOpen={Boolean(cameoTargetPost)}
+          onClose={() => setCameoTargetPost(null)}
+          targetPostAuthor={cameoTargetPost.authorName}
+          onCaptureCameo={(selfieUrl) => {
+            StorageService.addCameoReaction(cameoTargetPost.id, {
+              authorName: profile.name,
+              avatarUrl: profile.avatar,
+              selfieUrl,
+            });
+            // Update local post state
+            cameoTargetPost.cameoReactions = [
+              ...(cameoTargetPost.cameoReactions || []),
+              {
+                id: 'cameo_' + Date.now(),
+                authorName: profile.name,
+                avatarUrl: profile.avatar,
+                selfieUrl,
+                timestamp: new Date().toISOString(),
+              },
+            ];
+          }}
+        />
+      )}
+
+      {/* Selfie Zoom Modal */}
+      {activeSelfieZoom && (
+        <div
+          onClick={() => setActiveSelfieZoom(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm cursor-pointer animate-fade-in"
+        >
+          <div className="relative w-64 h-64 rounded-full overflow-hidden brutal-border-3 dark:border-white shadow-2xl bg-black animate-scale-up">
+            <img src={activeSelfieZoom} alt="Zoomed Selfie" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

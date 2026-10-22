@@ -19,6 +19,19 @@ export const FriendsInvitePanel: React.FC<FriendsInvitePanelProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  const [nudgeSentCode, setNudgeSentCode] = useState<string | null>(null);
+
+  const handleNudge = (code: string) => {
+    SoundService.playNudge();
+    HapticService.reactionBurst();
+    StorageService.sendNudge(code);
+    setNudgeSentCode(code);
+    setSuccessMsg(`⚡ ĐÃ BẮN TÍN HIỆU HỐI ${code} CHỤP ẢNH CHECK-IN!`);
+    setTimeout(() => {
+      setNudgeSentCode(null);
+    }, 4000);
+  };
+
   const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(profile.inviteCode);
@@ -150,25 +163,51 @@ export const FriendsInvitePanel: React.FC<FriendsInvitePanelProps> = ({
           <span className="text-[10px] font-black uppercase text-gray-500 dark:text-gray-400 tracking-wider">
             Bạn Bè ({profile.friendCodes.length})
           </span>
-          <div className="flex flex-col gap-1">
-            {profile.friendCodes.map((code) => (
-              <div
-                key={code}
-                className="flex items-center justify-between px-3 py-1.5 bg-[#D8F3DC] dark:bg-[#153426] brutal-border rounded-xl"
-              >
-                <span className="font-black text-sm tracking-widest text-[#18181B] dark:text-[#52B788]">
-                  {code}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFriend(code)}
-                  className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-500 flex items-center justify-center cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/60 transition-colors"
-                  title="Xóa bạn"
+          <div className="flex flex-col gap-2">
+            {profile.friendCodes.map((code) => {
+              const isNudged = nudgeSentCode === code;
+              return (
+                <div
+                  key={code}
+                  className="flex items-center justify-between px-3 py-2 bg-[#D8F3DC] dark:bg-[#153426] brutal-border rounded-xl"
                 >
-                  <X size={11} strokeWidth={3} />
-                </button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-sm tracking-widest text-[#18181B] dark:text-[#52B788]">
+                      {code}
+                    </span>
+                    {profile.duoBond?.friendCode === code && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-[#FF6B8B] text-white text-[9px] font-black uppercase tracking-wider">
+                        Duo Bond 🔥
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleNudge(code)}
+                      disabled={isNudged}
+                      className={`px-2.5 py-1 rounded-lg brutal-border brutal-shadow-sm font-black text-[10px] flex items-center gap-1 transition-all cursor-pointer ${
+                        isNudged
+                          ? 'bg-gray-200 text-gray-500'
+                          : 'bg-[#FFD166] text-[#18181B] hover:scale-105 active:scale-95'
+                      }`}
+                      title="Gõ đầu đòi bạn chụp ảnh"
+                    >
+                      <span>⚡</span>
+                      <span>{isNudged ? 'Đã giục' : 'Hối ảnh'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFriend(code)}
+                      className="w-6 h-6 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-500 flex items-center justify-center cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/60 transition-colors"
+                      title="Xóa bạn"
+                    >
+                      <X size={12} strokeWidth={3} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

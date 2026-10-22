@@ -1,30 +1,32 @@
-import React, { useState, useRef } from 'react';
-import { Flame, ShoppingBag, Snowflake, Zap, CheckCircle2, Download, Upload } from 'lucide-react';
-import type { UserProfile, Habit } from '../../types';
+import React, { useState } from 'react';
+import { Flame, ShoppingBag, Snowflake, Zap, CheckCircle2, HeartHandshake, Newspaper } from 'lucide-react';
+import type { UserProfile, Habit, CheckInPost } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
-import { BackupService } from '../../services/backup';
 import { SoundService } from '../../services/sound';
+import { StorageService } from '../../services/storage';
 import { HapticService } from '../../services/haptic';
+import { ComicStripModal } from './ComicStripModal';
 
 interface StreakTabProps {
   profile: UserProfile;
   habits: Habit[];
+  posts?: CheckInPost[];
   onBuyFreeze: () => void;
-  onDataRestored?: () => void;
+  onProfileChange?: (profile: UserProfile) => void;
 }
 
 export const StreakTab: React.FC<StreakTabProps> = ({
   profile,
   habits: _habits,
+  posts = [],
   onBuyFreeze,
-  onDataRestored,
+  onProfileChange,
 }) => {
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [backupMessage, setBackupMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
-  const importInputRef = useRef<HTMLInputElement>(null);
+  const [duoCodeInput, setDuoCodeInput] = useState('');
+  const [duoError, setDuoError] = useState('');
+  const [showComicStrip, setShowComicStrip] = useState(false);
 
   // Generate 7-day calendar for current week
   const daysOfWeek = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -32,48 +34,49 @@ export const StreakTab: React.FC<StreakTabProps> = ({
 
   const handleBuy = () => {
     onBuyFreeze();
+    SoundService.playSuccess();
     setPurchaseSuccess(true);
     setTimeout(() => setPurchaseSuccess(false), 2000);
   };
 
-  const handleExport = async () => {
-    SoundService.playSuccess();
-    setIsExporting(true);
-    setBackupMessage(null);
-    try {
-      await BackupService.exportBackup();
-      setBackupMessage({ type: 'ok', text: 'Đã tải file sao lưu về máy!' });
-    } catch (err) {
-      setBackupMessage({ type: 'error', text: `Lỗi xuất dữ liệu: ${String(err)}` });
+  const handleBindDuo = () => {
+    setDuoError('');
+    const code = duoCodeInput.trim().toUpperCase();
+    if (!code) {
+      setDuoError('Nhập mã của bạn thân!');
       HapticService.error();
-    } finally {
-      setIsExporting(false);
+      return;
+    }
+    if (code === profile.inviteCode) {
+      setDuoError('Không thể ghép đôi với chính mình!');
+      HapticService.error();
+      return;
+    }
+
+    const newBond = {
+      friendCode: code,
+      friendName: `Bestie (${code})`,
+      friendAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      streakCount: Math.min(profile.currentStreak, 5) || 1,
+      userCheckedToday: profile.currentStreak > 0,
+      friendCheckedToday: true,
+      lastSyncDate: new Date().toISOString(),
+    };
+
+    StorageService.setDuoBond(newBond);
+    SoundService.playSuccess();
+    HapticService.checkboxComplete();
+    setDuoCodeInput('');
+    if (onProfileChange) {
+      onProfileChange(StorageService.getProfile());
     }
   };
 
-  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsImporting(true);
-    setBackupMessage(null);
-    try {
-      const err = await BackupService.importBackup(file);
-      if (err) {
-        setBackupMessage({ type: 'error', text: err });
-        HapticService.error();
-      } else {
-        SoundService.playSuccess();
-        HapticService.checkboxComplete();
-        setBackupMessage({ type: 'ok', text: 'Phục hồi thành công! Ứng dụng sẽ tải lại...' });
-        // Reload app state via callback; give user 1.5s to read message
-        setTimeout(() => {
-          if (onDataRestored) onDataRestored();
-        }, 1500);
-      }
-    } finally {
-      setIsImporting(false);
-      // Reset input so the same file can be re-imported
-      if (importInputRef.current) importInputRef.current.value = '';
+  const handleUnbindDuo = () => {
+    SoundService.playClick();
+    StorageService.setDuoBond(null);
+    if (onProfileChange) {
+      onProfileChange(StorageService.getProfile());
     }
   };
 
@@ -106,6 +109,19 @@ export const StreakTab: React.FC<StreakTabProps> = ({
         <p className="text-xs font-black text-[#18181B] bg-[#FFD166] px-3 py-1 rounded-lg brutal-border mt-2 z-10 uppercase tracking-wide">
           ⚡ NĂNG LƯỢNG RỰC CHÁY - BẢO TOÀN LOCKET!
         </p>
+
+        {/* Comic Strip Export CTA Button */}
+        <button
+          onClick={() => {
+            SoundService.playPop();
+            HapticService.shutterClick();
+            setShowComicStrip(true);
+          }}
+          className="mt-4 px-4 py-2 bg-white dark:bg-[#1E1E24] hover:bg-[#FFD166] text-[#18181B] dark:text-white dark:hover:text-[#18181B] brutal-border-2 brutal-shadow-sm rounded-2xl font-black text-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer z-10"
+        >
+          <Newspaper size={16} className="text-[#FF5400]" />
+          <span>Xuất Báo Cáo Tuần: Trang Truyện Tranh 🗞️</span>
+        </button>
 
         {/* 7-day mini calendar - Retro Comic Style */}
         <div className="flex justify-between w-full max-w-xs mt-5 bg-white dark:bg-[#1A1A20] p-3 rounded-2xl brutal-border-3 brutal-shadow z-10">
@@ -164,6 +180,103 @@ export const StreakTab: React.FC<StreakTabProps> = ({
           </div>
           <p className="text-[10px] font-bold text-white/90 dark:text-[#90CAFF]/80 mt-1 relative z-10">Bảo vệ chuỗi khi quên task</p>
         </div>
+      </div>
+
+      {/* Co-op Duo Streak Widget */}
+      <div className="bg-[#FFF3B0] dark:bg-[#2A2617] rounded-3xl brutal-border-3 brutal-shadow p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <HeartHandshake size={22} className="text-[#FF5400]" strokeWidth={2.5} />
+            <h3 className="font-black text-sm text-[#18181B] dark:text-[#FFD166] uppercase tracking-wide">
+              Chuỗi Đôi Bạn Thân 🤝 Duo Streak
+            </h3>
+          </div>
+          {profile.duoBond && (
+            <Badge variant="pink">🔥 DUO ON FIRE</Badge>
+          )}
+        </div>
+
+        {profile.duoBond ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between bg-white dark:bg-[#1E1E24] p-3 rounded-2xl brutal-border">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  <img
+                    src={profile.avatar}
+                    alt={profile.name}
+                    className="w-10 h-10 rounded-full brutal-border object-cover relative z-10"
+                  />
+                  <img
+                    src={profile.duoBond.friendAvatar}
+                    alt={profile.duoBond.friendName}
+                    className="w-10 h-10 rounded-full brutal-border object-cover relative z-0"
+                  />
+                </div>
+                <div>
+                  <div className="font-black text-xs text-[#18181B] dark:text-[#F4F4F6]">
+                    {profile.name} 🤝 {profile.duoBond.friendName}
+                  </div>
+                  <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                    Mã liên kết: {profile.duoBond.friendCode}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <span className="text-2xl font-black text-[#FF5400]">
+                  {profile.duoBond.streakCount} 🔥
+                </span>
+                <div className="text-[9px] font-black uppercase text-gray-500">Ngày song hành</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-center text-xs font-black">
+              <div className="p-2 rounded-xl bg-white dark:bg-[#1E1E24] brutal-border flex items-center justify-center gap-1.5">
+                <span>{profile.name}:</span>
+                <span className="text-[#52B788]">Đã check-in ✓</span>
+              </div>
+              <div className="p-2 rounded-xl bg-white dark:bg-[#1E1E24] brutal-border flex items-center justify-center gap-1.5">
+                <span>Bạn thân:</span>
+                <span className="text-[#52B788]">Đã check-in ✓</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleUnbindDuo}
+                className="text-[10px] font-black text-red-500 hover:underline cursor-pointer"
+              >
+                Hủy ghép đôi
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-bold text-[#18181B]/80 dark:text-[#FFD166]/80">
+              Ghép đôi với 1 bạn thân: Cả hai cùng check-in mỗi ngày để nuôi ngọn lửa chuỗi chung!
+            </p>
+            <div className="flex gap-2 mt-1">
+              <input
+                type="text"
+                placeholder="Nhập mã bạn thân LK-XXXX"
+                value={duoCodeInput}
+                onChange={(e) => {
+                  setDuoCodeInput(e.target.value.toUpperCase());
+                  setDuoError('');
+                }}
+                maxLength={7}
+                className="flex-1 px-3 py-2 bg-white dark:bg-[#1E1E24] dark:text-white brutal-border rounded-xl text-xs font-black placeholder:text-gray-400 uppercase"
+              />
+              <Button size="sm" variant="primary" onClick={handleBindDuo}>
+                Ghép Đôi 🤝
+              </Button>
+            </div>
+            {duoError && (
+              <span className="text-[10px] font-bold text-red-500">{duoError}</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Freeze Store */}
@@ -293,62 +406,21 @@ export const StreakTab: React.FC<StreakTabProps> = ({
         </div>
       </div>
 
-      {/* Export / Import Backup Panel */}
-      <div className="bg-white dark:bg-[#1A1A20] rounded-3xl brutal-border-3 brutal-shadow p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Download size={20} className="text-[#18181B] dark:text-[#F4F4F6]" strokeWidth={2.5} />
-          <h3 className="font-black text-sm text-[#18181B] dark:text-[#F4F4F6] uppercase tracking-wide">
-            Sao Lưu & Phục Hồi 💾
-          </h3>
-        </div>
-
-        <p className="text-[11px] font-bold text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-          Xuất toàn bộ Thói Quen, Ảnh Check-in, Voice Note và Profile ra file JSON để
-          sao lưu hoặc chuyển sang thiết bị khác.
-        </p>
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={isExporting}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-[#52B788] text-white brutal-border brutal-shadow-sm rounded-xl font-black text-xs cursor-pointer hover:bg-green-600 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <Download size={14} />
-            {isExporting ? 'Đang xuất...' : 'Xuất JSON'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => importInputRef.current?.click()}
-            disabled={isImporting}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-[#3A86FF] text-white brutal-border brutal-shadow-sm rounded-xl font-black text-xs cursor-pointer hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <Upload size={14} />
-            {isImporting ? 'Đang nhập...' : 'Nhập JSON'}
-          </button>
-        </div>
-
-        <input
-          ref={importInputRef}
-          type="file"
-          accept=".json,application/json"
-          onChange={handleImportFile}
-          className="hidden"
-        />
-
-        {backupMessage && (
-          <p
-            className={`mt-3 text-xs font-black rounded-xl brutal-border p-2.5 text-center ${
-              backupMessage.type === 'ok'
-                ? 'bg-[#D8F3DC] dark:bg-[#153426] text-green-800 dark:text-green-300'
-                : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300'
-            }`}
-          >
-            {backupMessage.text}
-          </p>
-        )}
+      {/* Cloud Auto-Sync status indicator (subtle, no user action needed) */}
+      <div className="flex items-center justify-center gap-1.5 py-2 opacity-40">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#52B788] animate-pulse" />
+        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Cloud Auto-Sync đang chạy ngầm
+        </span>
       </div>
+
+      {/* Comic Strip Story Modal */}
+      <ComicStripModal
+        isOpen={showComicStrip}
+        onClose={() => setShowComicStrip(false)}
+        posts={posts}
+        profile={profile}
+      />
     </div>
   );
 };
